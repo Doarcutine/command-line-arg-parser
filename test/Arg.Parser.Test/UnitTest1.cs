@@ -8,7 +8,7 @@ namespace Arg.Parser.Test
         [Fact]
         public void Test1()
         {
-
+            
         }
     }
 }
