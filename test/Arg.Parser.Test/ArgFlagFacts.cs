@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Arg.Parser.Test
@@ -8,13 +9,24 @@ namespace Arg.Parser.Test
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        public void throw_exception_when_not_supply_either_short_name_or_long_name(string longName)
+        {
+            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+                .AddFlagOption(longName)
+                .Build());
+            Assert.Equal("arg opt must have at least one name, long or short", e.Message);
+        }
+        
+        [Theory]
         [InlineData("+")]
         [InlineData("-abc")]
         public void long_name_contain_invalid_character_or_start_with_dash_should_throw_exception(string longName)
         {
-            Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
                 .AddFlagOption(longName)
                 .Build());
+            Assert.Equal($"long name should only contain lower or upper letter," +
+                         $" number, dash and underscore, but get '{longName}'", e.Message);
         }
         
         [Theory]
@@ -36,9 +48,12 @@ namespace Arg.Parser.Test
         [InlineData('3')]
         public void short_name_contain_invalid_character_should_throw_exception(char shortName)
         {
-            Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
                 .AddFlagOption(shortName)
                 .Build());
+            Assert.Equal(
+                $"short argument must and only have one lower or upper letter, but get: '{shortName}'",
+                e.Message);
         }
         
         [Theory]
@@ -53,15 +68,24 @@ namespace Arg.Parser.Test
         }
 
         [Fact]
-        public void should_build_and_match_long_name()
+        public void should_save_and_replace_new_line_in_arg_flag_description()
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption('f', "flag", "it is a flag")
+                .AddFlagOption('v', "version", "this is version info\nnew line")
                 .Build();
-            
-            ArgsParsingResult result = parser.Parse(new [] { "--flag" });
-            Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("-f"));
+            var helpInfo = parser.HelpInfo().ToList();
+            Assert.Equal(1, helpInfo.Count);
+            Assert.Equal("v    version    this is version info new line", helpInfo.First());
+        }
+        
+        [Fact]
+        public void should_throw_exception_when_add_more_than_one_flag_option()
+        {
+            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+                .AddFlagOption('v')
+                .AddFlagOption('f')
+                .Build());
+            Assert.Equal("only support one flag for now", e.Message);
         }
     }
 }

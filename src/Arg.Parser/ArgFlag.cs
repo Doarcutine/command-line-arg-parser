@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Arg.Parser
+﻿namespace Arg.Parser
 {
     public class ArgFlag
     {

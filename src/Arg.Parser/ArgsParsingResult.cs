@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 
 namespace Arg.Parser
@@ -9,55 +7,45 @@ namespace Arg.Parser
     public class ArgsParsingResult
     {
         public bool IsSuccess { get; }
-        private IReadOnlyCollection<IInputArg> results;
+        private IReadOnlyCollection<IInputArg> parsedArgs;
         private IReadOnlyCollection<ArgFlag> supportArgFlags;
 
-        public ArgsParsingResult(bool isSuccess, IReadOnlyCollection<IInputArg> parseResults, IReadOnlyCollection<ArgFlag> supportArgFlags)
+        public ArgsParsingResult(bool isSuccess, IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<ArgFlag> supportArgFlags)
         {
             this.IsSuccess = isSuccess;
-            this.results = parseResults;
+            this.parsedArgs = parsedArgs;
             this.supportArgFlags = supportArgFlags;
         }
 
 
-        public bool GetFlagValue(string expectArg)
+        public bool GetFlagValue(string queryArg)
         {
-            var queryParseResult = Parser.Parse(expectArg);
+            var queryParseResult = Parser.Parse(queryArg);
             if (!queryParseResult.ParseSuccess)
                 return false;
-            var x = queryParseResult.Result;
-            ArgFlag supportArg = null;
-            if (x is ShortArg)
+            ArgFlag supportArg;
+            switch (queryParseResult.Result)
             {
-                supportArg = supportArgFlags.SingleOrDefault(s => s.ShortName == ((ShortArg)x).Arg);
-                if (supportArg == null) {
-                    return false;
-                }
-                return results.Any(r => (r as ShortArg)?.Arg == supportArg.ShortName)
-                       || results.Any(r => (r as LongArg)?.Arg == supportArg.LongName);
+                case ShortArg shortArg:
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.ShortName == shortArg.Arg);
+                    if (supportArg == null) {
+                        return false;
+                    }
+                    break;
+                case LongArg longArg:
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.LongName == longArg.Arg);
+                    if (supportArg == null)
+                    {
+                        return false;
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            if (x is LongArg)
-            {
-                supportArg = supportArgFlags.SingleOrDefault(s => s.LongName == ((LongArg)x).Arg);
-                if (supportArg == null)
-                {
-                    return false;
-                }
-            }
-            return results.Any(r => (r as ShortArg)?.Arg == supportArg.ShortName)
-                    || results.Any(r => (r as LongArg)?.Arg == supportArg.LongName);
-        }
-    }
 
-    class ParsedArg
-    {
-        public ParsedArg(char? argShortName, string argLongName, bool b)
-        {
-            throw new NotImplementedException();
+            var matchedShortArg = parsedArgs.SingleOrDefault(r => (r as ShortArg)?.Arg == supportArg.ShortName);
+            var matchedLongArg = parsedArgs.SingleOrDefault(r => (r as LongArg)?.Arg == supportArg.LongName);
+            return matchedShortArg?.Value ?? matchedLongArg?.Value ?? false;
         }
-
-        public char? ShortName { get; }
-        public string LongName { get; }
-        public bool Value { get; } 
     }
 }
