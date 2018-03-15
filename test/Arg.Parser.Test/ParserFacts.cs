@@ -1,45 +1,56 @@
 ﻿using System;
-using Microsoft.DotNet.PlatformAbstractions;
 using Xunit;
 
 namespace Arg.Parser.Test
 {
     public class ParserFacts
     {
-        [Fact]
-        public void should_match_and_get_by_long_name()
+        [Theory]
+        [InlineData("flag","flag","flag")]
+        [InlineData("flag","Flag","flag")]
+        [InlineData("flag","Flag","Flag")]
+        [InlineData("Flag","Flag","Flag")]
+        public void should_match_and_get_by_long_name(string supportLongName, string inputLongName, string getFlagLongName)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption("flag")
+                .AddFlagOption(supportLongName)
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "--flag" });
+            ArgsParsingResult result = parser.Parse(new [] { "--" + inputLongName });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("--flag"));
+            Assert.True(result.GetFlagValue("--" + getFlagLongName));
         }
         
-        [Fact]
-        public void should_match_and_get_by_short_name()
+        [Theory]
+        [InlineData('f','f','f')]
+        [InlineData('f','F','f')]
+        [InlineData('f','F','F')]
+        [InlineData('F','f','f')]
+        public void should_match_and_get_by_short_name(char supportShortName, char inputShortName, char getFlagShortName)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption('f')
+                .AddFlagOption(supportShortName)
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "-f" });
+            ArgsParsingResult result = parser.Parse(new [] { "-" + inputShortName.ToString() });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("-f"));
+            Assert.True(result.GetFlagValue("-" + getFlagShortName.ToString()));
         }
         
-        [Fact]
-        public void should_build_long_and_short_name_then_match_long_name_then_get_by_short_name()
+        [Theory]
+        [InlineData('f',"flag","flag",'f')]
+        [InlineData('f',"flag","Flag",'F')]
+        [InlineData('F',"flag","flag",'f')]
+        [InlineData('f',"Flag","flag",'f')]
+        public void should_build_long_and_short_name_then_match_long_name_then_get_by_short_name(char supportShortName, string supportLongName, string inputLongName, char getFlagShortName)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption('f', "flag", "it is a flag")
+                .AddFlagOption(supportShortName, supportLongName, "it is a flag")
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "--flag" });
+            ArgsParsingResult result = parser.Parse(new [] { "--" + inputLongName });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("-f"));
+            Assert.True(result.GetFlagValue("-" + getFlagShortName));
         }
         
         [Fact]
