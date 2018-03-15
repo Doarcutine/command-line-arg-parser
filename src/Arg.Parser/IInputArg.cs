@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using static System.Char;
 
 namespace Arg.Parser
 {
@@ -11,7 +12,7 @@ namespace Arg.Parser
 
     class ShortArg : IInputArg
     {
-        public static readonly Func<char,bool> Requirment = c => char.IsLower(c) || char.IsUpper(c);
+        public static readonly Func<char,bool> Requirment = c => IsLower(c) || IsUpper(c);
         public char Arg { get; }
 
         private ShortArg(char arg)
@@ -21,7 +22,7 @@ namespace Arg.Parser
 
         public bool MatchArg(ArgFlag c)
         {
-            return c.ShortName == this.Arg;
+            return c.ShortName.HasValue && ToLower(c.ShortName.Value) == ToLower(this.Arg);
         }
 
         public bool Value => true;
@@ -38,7 +39,7 @@ namespace Arg.Parser
     class LongArg : IInputArg
     {
         public static readonly Func<string,bool> Requirment = arg => arg.First() != '-' &&
-            arg.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_');
+            arg.All(c => IsLetterOrDigit(c) || c == '-' || c == '_');
         public string Arg { get; }
 
         private LongArg(string arg)
@@ -48,7 +49,7 @@ namespace Arg.Parser
 
         public bool MatchArg(ArgFlag c)
         {
-            return c.LongName == this.Arg;
+            return c.LongName?.ToLower() == this.Arg.ToLower();
         }
         
         public bool Value => true;
