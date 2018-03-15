@@ -1,24 +1,24 @@
 ﻿namespace Arg.Parser
 {
-    public class ArgFlag
+    class ArgFlag
     {
-        public char? ShortName { get; }
-        public string LongName { get; }
-        public string Description { get; }
+        internal char? ShortName { get; }
+        internal string LongName { get; }
+        internal string Description { get; }
         
-        public ArgFlag(char? shortName, string longName, string description)
+        internal ArgFlag(char? shortName, string longName, string description)
         {
             this.ShortName = shortName;
             this.LongName = longName;
             this.Description = description;
         }
 
-        public ArgFlag(char shortName)
+        internal ArgFlag(char shortName)
         {
             this.ShortName = shortName;
         }
 
-        public ArgFlag(string longName)
+        internal ArgFlag(string longName)
         {
             this.LongName = longName;
         }

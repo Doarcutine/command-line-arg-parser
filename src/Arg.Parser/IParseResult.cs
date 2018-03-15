@@ -2,14 +2,14 @@ using System;
 
 namespace Arg.Parser
 {
-    public interface IParseResult<out T>
+    interface IParseResult<out T>
     {
         bool ParseSuccess { get; }
         T Result { get; }
         string ParseErrorReason { get; }
     }
 
-    public class SuccessParse<T> : IParseResult<T>
+    class SuccessParse<T> : IParseResult<T>
     {
         public bool ParseSuccess => true;
         public T Result { get; }
@@ -21,7 +21,7 @@ namespace Arg.Parser
         }
     }
 
-    public class FailedParse<T> : IParseResult<T>
+    class FailedParse<T> : IParseResult<T>
     {
         public bool ParseSuccess => false;
 

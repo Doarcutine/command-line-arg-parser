@@ -74,7 +74,7 @@ namespace Arg.Parser.Test
                 .AddFlagOption('v', "version", "this is version info\nnew line")
                 .Build();
             var helpInfo = parser.HelpInfo().ToList();
-            Assert.Equal(1, helpInfo.Count);
+            Assert.Single(helpInfo);
             Assert.Equal("v    version    this is version info new line", helpInfo.First());
         }
         

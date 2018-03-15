@@ -10,7 +10,7 @@ namespace Arg.Parser
         private static readonly Func<string,bool> LongNamePrefix = arg => arg[0] == '-' && arg[1] == '-';
         private static readonly Func<string,bool> ShortNamePrefix = arg => arg[0] == '-';
 
-        public Parser(IReadOnlyCollection<ArgFlag> supportArgFlags)
+        internal Parser(IReadOnlyCollection<ArgFlag> supportArgFlags)
         {
             ValidateSupportFlag(supportArgFlags);
             this.supportArgFlags = supportArgFlags;
@@ -69,7 +69,7 @@ namespace Arg.Parser
             return new ArgsParsingResult(true, parseResults.Select(x => x.Result).ToList(), supportArgFlags);
         }
 
-        public static IParseResult<IInputArg> Parse(string arg)
+        internal static IParseResult<IInputArg> Parse(string arg)
         {
             if (arg.Length < 2)
                 return new FailedParse<IInputArg>("argument too short");

@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace Arg.Parser
 {
-    public interface IInputArg
+    interface IInputArg
     {
         bool MatchArg(ArgFlag c);
         bool Value { get; }
     }
 
-    public class ShortArg : IInputArg
+    class ShortArg : IInputArg
     {
         public static readonly Func<char,bool> Requirment = c => char.IsLower(c) || char.IsUpper(c);
         public char Arg { get; }
@@ -35,7 +35,7 @@ namespace Arg.Parser
         }
     }
 
-    public class LongArg : IInputArg
+    class LongArg : IInputArg
     {
         public static readonly Func<string,bool> Requirment = arg => arg.First() != '-' &&
             arg.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_');

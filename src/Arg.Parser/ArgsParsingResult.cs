@@ -10,7 +10,7 @@ namespace Arg.Parser
         private IReadOnlyCollection<IInputArg> parsedArgs;
         private IReadOnlyCollection<ArgFlag> supportArgFlags;
 
-        public ArgsParsingResult(bool isSuccess, IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<ArgFlag> supportArgFlags)
+        internal ArgsParsingResult(bool isSuccess, IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<ArgFlag> supportArgFlags)
         {
             this.IsSuccess = isSuccess;
             this.parsedArgs = parsedArgs;
