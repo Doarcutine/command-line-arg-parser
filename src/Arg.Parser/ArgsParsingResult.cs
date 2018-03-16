@@ -2,28 +2,51 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static System.Char;
+// ReSharper disable InconsistentNaming
 
 namespace Arg.Parser
 {
+    /// <summary>
+    /// Parsing result, maybe success or fail
+    /// </summary>
     public class ArgsParsingResult
     {
+        /// <summary>
+        /// true means parse success, false means parse fail
+        /// </summary>
         public bool IsSuccess { get; }
+        /// <summary>
+        /// when IsSuccess is false, this field will contain failure detail
+        /// when IsSuccess is true, this field will be null
+        /// </summary>
+        public Error Error { get;  } 
         private readonly IReadOnlyCollection<IInputArg> parsedArgs;
-        private readonly IReadOnlyCollection<ArgFlag> supportArgFlags;
+        private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
 
-        internal ArgsParsingResult(bool isSuccess, IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<ArgFlag> supportArgFlags)
+        internal ArgsParsingResult(IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<FlagOption> supportArgFlags)
         {
-            this.IsSuccess = isSuccess;
+            this.IsSuccess = true;
             this.parsedArgs = parsedArgs;
             this.supportArgFlags = supportArgFlags;
         }
 
+        internal ArgsParsingResult(Error error)
+        {
+            this.IsSuccess = false;
+            this.Error = error;
+        }
+
+        /// <summary>
+        /// get {queryArg} value from parser result
+        /// </summary>
+        /// <param name="queryArg">flag which you want to get value</param>
+        /// <returns>true if flag appear on input, otherwise false</returns>
         public bool GetFlagValue(string queryArg)
         {
             var queryParseResult = Parser.Parse(queryArg);
             if (!queryParseResult.ParseSuccess)
                 return false;
-            ArgFlag supportArg;
+            FlagOption supportArg;
             switch (queryParseResult.Result)
             {
                 case ShortArg shortArg:

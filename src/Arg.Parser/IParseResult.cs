@@ -7,6 +7,7 @@ namespace Arg.Parser
         bool ParseSuccess { get; }
         T Result { get; }
         string ParseErrorReason { get; }
+        string OriginInput { get; }
     }
 
     class SuccessParse<T> : IParseResult<T>
@@ -14,10 +15,12 @@ namespace Arg.Parser
         public bool ParseSuccess => true;
         public T Result { get; }
         public string ParseErrorReason => null;
+        public string OriginInput { get; }
 
-        public SuccessParse(T result)
+        public SuccessParse(T result, string originInput)
         {
             this.Result = result;
+            this.OriginInput = originInput;
         }
     }
 
@@ -28,10 +31,12 @@ namespace Arg.Parser
         public T Result => throw new NotImplementedException();
 
         public string ParseErrorReason { get; }
+        public string OriginInput { get; }
 
-        public FailedParse(string reason)
+        public FailedParse(string reason, string originInput)
         {
             this.ParseErrorReason = reason;
+            this.OriginInput = originInput;
         }
     }
 }

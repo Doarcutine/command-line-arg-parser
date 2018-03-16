@@ -25,7 +25,7 @@ namespace Arg.Parser.Test
             var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
                 .AddFlagOption(longName)
                 .Build());
-            Assert.Equal($"long name should only contain lower or upper letter," +
+            Assert.Equal("long name should only contain lower or upper letter," +
                          $" number, dash and underscore, but get '{longName}'", e.Message);
         }
         

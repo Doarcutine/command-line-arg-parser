@@ -1,5 +1,4 @@
-﻿using System;
-using Xunit;
+﻿using Xunit;
 
 namespace Arg.Parser.Test
 {
@@ -59,8 +58,15 @@ namespace Arg.Parser.Test
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f')
                 .Build();
+
+            var inputFlag = "-fr";
+            var parseResult = parser.Parse(new [] { inputFlag });
             
-            Assert.Throws<ApplicationException>(() => parser.Parse(new [] { "--fr" }));
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
+            Assert.Equal("short argument must and only have one lower or upper letter", error.Detail);
+            Assert.Equal(inputFlag, error.Trigger);
         }
         
         [Fact]
@@ -76,54 +82,70 @@ namespace Arg.Parser.Test
         }
         
         [Fact]
-        public void should_throw_exception_when_input_arg_not_support_by_flag_option()
+        public void should_get_error_when_input_arg_not_support_by_flag_option()
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .Build();
             
-            var e = Assert.Throws<ApplicationException>(() => parser.Parse(new string[]{"-a"}));
+            var parseResult = parser.Parse(new[]{"-a"});
             
-            Assert.Equal("input argument are not supported: -a", e.Message);
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.NotSupportedFlag, error.Code);
+            Assert.Equal("input argument is not supported", error.Detail);
+            Assert.Equal("-a", error.Trigger);
         }
         
         [Fact]
-        public void should_throw_exception_when_input_arg_too_short()
+        public void should_get_error_when_input_arg_too_short()
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .Build();
             
-            var e = Assert.Throws<ApplicationException>(() => parser.Parse(new string[]{"-"}));
+            var parseResult = parser.Parse(new[]{"-"});
             
-            Assert.Equal("argument too short", e.Message);
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
+            Assert.Equal("argument too short", error.Detail);
+            Assert.Equal("-", error.Trigger);
         }
         
         [Fact]
-        public void should_throw_exception_when_input_arg_not_start_with_under_score()
+        public void should_get_error_when_input_arg_not_start_with_under_score()
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .Build();
             
-            var e = Assert.Throws<ApplicationException>(() => parser.Parse(new string[]{"abc"}));
+            var parseResult = parser.Parse(new[]{"abc"});
             
-            Assert.Equal("argument must start with - or --", e.Message);
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
+            Assert.Equal("argument must start with - or --", error.Detail);
+            Assert.Equal("abc", error.Trigger);
         }
         
         [Theory]
         [InlineData("+")]
         [InlineData("-abc")]
-        public void input_long_name_contain_invalid_character_or_start_with_dash_should_throw_exception(string input)
+        public void input_long_name_contain_invalid_character_or_start_with_dash_should_get_error(string input)
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .Build();
 
-            var e = Assert.Throws<ApplicationException>(() => parser.Parse(new string[]{"--" + input}));
+            var inputFlag = "--" + input;
+            var parseResult = parser.Parse(new[]{inputFlag});
             
-            Assert.Equal($"long name should only contain lower or upper letter," +
-                         $" number, dash and underscore, but get '{input}'", e.Message);
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
+            Assert.Equal("long name should only contain lower or upper letter, number, dash and underscore", error.Detail);
+            Assert.Equal(inputFlag, error.Trigger);
         }
         
         [Theory]
@@ -136,11 +158,14 @@ namespace Arg.Parser.Test
                 .AddFlagOption('f', "flag", "it is a flag")
                 .Build();
 
-            var e = Assert.Throws<ApplicationException>(() => parser.Parse(new string[]{"-" + input}));
+            var inputFlag = "-" + input;
+            var parseResult = parser.Parse(new[]{inputFlag});
             
-            Assert.Equal(
-                $"short argument must and only have one lower or upper letter, but get: '{input}'",
-                e.Message);
+            Assert.False(parseResult.IsSuccess);
+            var error = parseResult.Error;
+            Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
+            Assert.Equal("short argument must and only have one lower or upper letter", error.Detail);
+            Assert.Equal(inputFlag, error.Trigger);
         }
     }
 }

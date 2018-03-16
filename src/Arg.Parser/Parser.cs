@@ -4,19 +4,24 @@ using System.Linq;
 
 namespace Arg.Parser
 {
+    /// <summary>
+    /// build from ArgParserBuilder,
+    /// used for parse command line input flag argument
+    /// </summary>
     public class Parser
     {
-        private readonly IReadOnlyCollection<ArgFlag> supportArgFlags;
+        // ReSharper disable once InconsistentNaming
+        private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
         private static readonly Func<string,bool> LongNamePrefix = arg => arg[0] == '-' && arg[1] == '-';
         private static readonly Func<string,bool> ShortNamePrefix = arg => arg[0] == '-';
 
-        internal Parser(IReadOnlyCollection<ArgFlag> supportArgFlags)
+        internal Parser(IReadOnlyCollection<FlagOption> supportArgFlags)
         {
             ValidateSupportFlag(supportArgFlags);
             this.supportArgFlags = supportArgFlags;
         }
 
-        private static void ValidateSupportFlag(IReadOnlyCollection<ArgFlag> argFlags)
+        private static void ValidateSupportFlag(IReadOnlyCollection<FlagOption> argFlags)
         {
             if (argFlags.Any(f => string.IsNullOrEmpty(f.LongName) && f.ShortName == null))
             {
@@ -28,64 +33,79 @@ namespace Arg.Parser
             if (longNameArgs.Any(f => !LongArg.Requirment(f.LongName)))
             {
                 var argFlag = longNameArgs.First(f => !LongArg.Requirment(f.LongName));
-                throw new ApplicationException($"long name should only contain lower or upper letter," +
+                throw new ApplicationException("long name should only contain lower or upper letter," +
                                                $" number, dash and underscore, but get '{argFlag.LongName}'");
             }
-            if (shortNameArgs.Any(f => !ShortArg.Requirment(f.ShortName.Value)))
+            if (shortNameArgs.Any(f => f.ShortName.HasValue && !ShortArg.Requirment(f.ShortName.Value)))
             {
-                var argFlag = shortNameArgs.First(f => !ShortArg.Requirment(f.ShortName.Value));
-                throw new ApplicationException($"short argument must and only have one lower or upper letter, but get: '{argFlag.ShortName.Value}'");
+                var argFlag = shortNameArgs.First(f => f.ShortName.HasValue && !ShortArg.Requirment(f.ShortName.Value));
+                throw new ApplicationException($"short argument must and only have one lower or upper letter, but get: '{argFlag.ShortName}'");
             }
 
             if (argFlags.Count > 1)
             {
                 throw new ApplicationException("only support one flag for now");
             }
+
+            if (argFlags.Where(f => f.ShortName.HasValue).GroupBy(f => f.ShortName).Any(g => g.Count() > 1))
+            {
+                throw new ApplicationException("duplicate short name");
+            }
+            
+            if (argFlags.Where(f => !string.IsNullOrEmpty(f.LongName)).GroupBy(f => f.LongName).Any(g => g.Count() > 1))
+            {
+                throw new ApplicationException("duplicate long name");
+            }
         }
 
+        /// <summary>
+        /// parse and match with supported flag option
+        /// </summary>
+        /// <param name="args">command line input args, like -f --version</param>
+        /// <returns>parser result, maybe success or failed, check IsSuccess,
+        ///          use GetFlagValue to get user input value if success,
+        ///          field Error contains failed detail
+        /// </returns>
         public ArgsParsingResult Parse(string[] args)
         {
             var parseResults = args.Select(Parse).ToList();
-            
-            if (!parseResults.All(a => a.ParseSuccess))
-                throw new ApplicationException(parseResults.First(a => !a.ParseSuccess).ParseErrorReason);
+
+            if (parseResults.Any(a => !a.ParseSuccess))
+            {
+                var failedParse = parseResults.First(a => !a.ParseSuccess);
+                return new ArgsParsingResult(
+                    new Error(ParsingErrorCode.FlagSyntaxError, failedParse.ParseErrorReason, failedParse.OriginInput));
+            }
 
             if (!parseResults.All(p => supportArgFlags.Any(s => p.Result.MatchArg(s))))
             {
-                var failedParse = parseResults.First(p => !supportArgFlags.Any(s => p.Result.MatchArg(s))).Result;
-                string failedArgument = "";
-                switch (failedParse)
-                {
-                    case LongArg longArg:
-                        failedArgument = $"--{longArg.Arg}";
-                        break;
-                    case ShortArg shortArg:
-                        failedArgument = $"-{shortArg.Arg}";
-                        break;
-                }
-                throw new ApplicationException("input argument are not supported: " + failedArgument);
+                var notMatchArg = parseResults.First(p => !supportArgFlags.Any(s => p.Result.MatchArg(s)));
+                return new ArgsParsingResult(new Error(ParsingErrorCode.NotSupportedFlag,
+                    "input argument is not supported", notMatchArg.OriginInput));
             }
 
-            return new ArgsParsingResult(true, parseResults.Select(x => x.Result).ToList(), supportArgFlags);
+            return new ArgsParsingResult(parseResults.Select(x => x.Result).ToList(), supportArgFlags);
         }
 
         internal static IParseResult<IInputArg> Parse(string arg)
         {
             if (arg.Length < 2)
-                return new FailedParse<IInputArg>("argument too short");
+                return new FailedParse<IInputArg>("argument too short", arg);
             if (LongNamePrefix(arg))
             {
-                string longName = arg.Substring(2);
-                return LongArg.Parse(longName);
+                return LongArg.Parse(arg);
             }
             if (ShortNamePrefix(arg))
             {
-                string shortName = arg.Substring(1);
-                return ShortArg.Parse(shortName);
+                return ShortArg.Parse(arg);
             }
-            return new FailedParse<IInputArg>("argument must start with - or --");
+            return new FailedParse<IInputArg>("argument must start with - or --", arg);
         }
 
+        /// <summary>
+        /// get support flag help description
+        /// </summary>
+        /// <returns>help description</returns>
         public IEnumerable<string> HelpInfo()
         {
             return supportArgFlags.Select(af =>
