@@ -13,8 +13,8 @@ namespace Arg.Parser
         /// <summary>
         /// add support flag option for parser, if abbreviationForm and fullForm both empty/null, will throw ArgumentException when Build()
         /// </summary>
-        /// <param name="abbreviationForm">command line short argument, like -f, if pass null means not set</param>
-        /// <param name="fullForm">command line long argument, like --version, if pass null means not set</param>
+        /// <param name="abbreviationForm">command line abbreviation form argument, like -f, if pass null means not set</param>
+        /// <param name="fullForm">command line full form argument, like --version, if pass null means not set</param>
         /// <param name="description">command line help info, will show if need</param>
         /// <returns>return self, you can chain call</returns>
         public ArgsParserBuilder AddFlagOption(char? abbreviationForm, string fullForm, string description){
@@ -25,7 +25,7 @@ namespace Arg.Parser
         /// <summary>
         /// add support flag option for parser
         /// </summary>
-        /// <param name="abbreviationForm">command line short argument, like -f</param>
+        /// <param name="abbreviationForm">command line abbreviation form argument, like -f</param>
         /// <returns>return self, you can chain call</returns>
         public ArgsParserBuilder AddFlagOption(char abbreviationForm){
             argFlags.Add(new FlagOption(abbreviationForm));
@@ -35,7 +35,7 @@ namespace Arg.Parser
         /// <summary>
         /// add support flag option for parser
         /// </summary>
-        /// <param name="fullForm">command line long argument, like --version</param>
+        /// <param name="fullForm">command line full form argument, like --version</param>
         /// <returns>return self, you can chain call</returns>
         public ArgsParserBuilder AddFlagOption(string fullForm){
             argFlags.Add(new FlagOption(fullForm));

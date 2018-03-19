@@ -12,8 +12,8 @@ namespace Arg.Parser
     {
         // ReSharper disable once InconsistentNaming
         private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
-        private static readonly Func<string,bool> LongNamePrefix = arg => arg[0] == '-' && arg[1] == '-';
-        private static readonly Func<string,bool> ShortNamePrefix = arg => arg[0] == '-';
+        private static readonly Func<string,bool> FullFormPrefix = arg => arg[0] == '-' && arg[1] == '-';
+        private static readonly Func<string,bool> abbreviationFormPrefix = arg => arg[0] == '-';
 
         internal Parser(IReadOnlyCollection<FlagOption> supportArgFlags)
         {
@@ -25,31 +25,31 @@ namespace Arg.Parser
         {
             if (argFlags.Any(f => string.IsNullOrEmpty(f.FullForm) && f.AbbreviationForm == null))
             {
-                throw new ArgumentException("arg opt must have at least one name, long or short");
+                throw new ArgumentException("arg opt must have at least one form, full form or abbreviation form");
             }
-            var longNameArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).ToList();
-            var shortNameArgs = argFlags.Where(f => f.AbbreviationForm.HasValue).ToList();
+            var fullFormArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).ToList();
+            var abbreviationFormArgs = argFlags.Where(f => f.AbbreviationForm.HasValue).ToList();
 
-            if (longNameArgs.Any(f => !LongArg.Requirment(f.FullForm)))
+            if (fullFormArgs.Any(f => !FullFormArg.Requirment(f.FullForm)))
             {
-                var argFlag = longNameArgs.First(f => !LongArg.Requirment(f.FullForm));
-                throw new ArgumentException("long name should only contain lower or upper letter," +
+                var argFlag = fullFormArgs.First(f => !FullFormArg.Requirment(f.FullForm));
+                throw new ArgumentException("full form should only contain lower or upper letter," +
                                                $" number, dash and underscore, but get '{argFlag.FullForm}'");
             }
-            if (shortNameArgs.Any(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value)))
+            if (abbreviationFormArgs.Any(f => f.AbbreviationForm.HasValue && !AbbreviationFormArg.Requirment(f.AbbreviationForm.Value)))
             {
-                var argFlag = shortNameArgs.First(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value));
-                throw new ArgumentException($"short argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
+                var argFlag = abbreviationFormArgs.First(f => f.AbbreviationForm.HasValue && !AbbreviationFormArg.Requirment(f.AbbreviationForm.Value));
+                throw new ArgumentException($"abbreviation argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
             }
 
             if (argFlags.Where(f => f.AbbreviationForm.HasValue).GroupBy(f => f.AbbreviationForm.HasValue ? char.ToLower(f.AbbreviationForm.Value) : (char?) null).Any(g => g.Count() > 1))
             {
-                throw new ArgumentException("duplicate short name");
+                throw new ArgumentException("duplicate abbreviation name");
             }
             
             if (argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).GroupBy(f => f.FullForm.ToLower()).Any(g => g.Count() > 1))
             {
-                throw new ArgumentException("duplicate long name");
+                throw new ArgumentException("duplicate full form");
             }
         }
 
@@ -86,13 +86,13 @@ namespace Arg.Parser
         {
             if (arg.Length < 2)
                 return new FailedParse<IInputArg>("argument too short", arg);
-            if (LongNamePrefix(arg))
+            if (FullFormPrefix(arg))
             {
-                return LongArg.Parse(arg);
+                return FullFormArg.Parse(arg);
             }
-            if (ShortNamePrefix(arg))
+            if (abbreviationFormPrefix(arg))
             {
-                return ShortArg.Parse(arg);
+                return AbbreviationFormArg.Parse(arg);
             }
             return new FailedParse<IInputArg>("argument must start with - or --", arg);
         }

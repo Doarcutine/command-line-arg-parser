@@ -10,12 +10,12 @@ namespace Arg.Parser
         bool Value { get; }
     }
 
-    class ShortArg : IInputArg
+    class AbbreviationFormArg : IInputArg
     {
         public static readonly Func<char,bool> Requirment = c => IsLower(c) || IsUpper(c);
         public char Arg { get; }
 
-        private ShortArg(char arg)
+        private AbbreviationFormArg(char arg)
         {
             this.Arg = arg;
         }
@@ -27,23 +27,23 @@ namespace Arg.Parser
 
         public bool Value => true;
         
-        public static IParseResult<ShortArg> Parse(string input)
+        public static IParseResult<AbbreviationFormArg> Parse(string input)
         {
             var arg = input.Substring(1);
             if (arg.Length != 1 || !Requirment(arg.First()))
-                return new FailedParse<ShortArg>("short argument must and only have one " +
+                return new FailedParse<AbbreviationFormArg>("abbreviation form argument must and only have one " +
                                                  "lower or upper letter", input);
-            return new SuccessParse<ShortArg>(new ShortArg(arg.First()), input);
+            return new SuccessParse<AbbreviationFormArg>(new AbbreviationFormArg(arg.First()), input);
         }
     }
 
-    class LongArg : IInputArg
+    class FullFormArg : IInputArg
     {
         public static readonly Func<string,bool> Requirment = arg => arg.First() != '-' &&
             arg.All(c => IsLetterOrDigit(c) || c == '-' || c == '_');
         public string Arg { get; }
 
-        private LongArg(string arg)
+        private FullFormArg(string arg)
         {
             this.Arg = arg;
         }
@@ -55,13 +55,13 @@ namespace Arg.Parser
         
         public bool Value => true;
 
-        public static IParseResult<LongArg> Parse(string input)
+        public static IParseResult<FullFormArg> Parse(string input)
         {
             string arg = input.Substring(2);
             if (!Requirment(arg))
-                return new FailedParse<LongArg>("long name should only contain lower or upper letter," +
+                return new FailedParse<FullFormArg>("full form should only contain lower or upper letter," +
                                                 " number, dash and underscore", input);
-            return new SuccessParse<LongArg>(new LongArg(arg), input);
+            return new SuccessParse<FullFormArg>(new FullFormArg(arg), input);
         }
     }
 }

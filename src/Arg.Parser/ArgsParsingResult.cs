@@ -49,14 +49,14 @@ namespace Arg.Parser
             FlagOption supportArg;
             switch (queryParseResult.Result)
             {
-                case ShortArg shortArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(shortArg.Arg));
+                case AbbreviationFormArg abbreviationFormArgArg:
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(abbreviationFormArgArg.Arg));
                     if (supportArg == null) {
                         return false;
                     }
                     break;
-                case LongArg longArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.FullForm?.ToLower() == longArg.Arg?.ToLower());
+                case FullFormArg fullFormArg:
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.FullForm?.ToLower() == fullFormArg.Arg?.ToLower());
                     if (supportArg == null)
                     {
                         return false;
@@ -66,14 +66,14 @@ namespace Arg.Parser
                     throw new ArgumentOutOfRangeException();
             }
 
-            var matchedShortArg = parsedArgs.SingleOrDefault(r =>
+            var matchedAbbreviationFormArg = parsedArgs.SingleOrDefault(r =>
             {
-                if (!(r is ShortArg shortArg)) return false;
+                if (!(r is AbbreviationFormArg abbreviationFormArgArg)) return false;
                 if (supportArg.AbbreviationForm == null) return false;
-                return ToLower(shortArg.Arg) == ToLower(supportArg.AbbreviationForm.Value);
+                return ToLower(abbreviationFormArgArg.Arg) == ToLower(supportArg.AbbreviationForm.Value);
             });
-            var matchedLongArg = parsedArgs.SingleOrDefault(r => (r as LongArg)?.Arg?.ToLower() == supportArg.FullForm?.ToLower());
-            return matchedShortArg?.Value ?? matchedLongArg?.Value ?? false;
+            var matchedFullFormArg = parsedArgs.SingleOrDefault(r => (r as FullFormArg)?.Arg?.ToLower() == supportArg.FullForm?.ToLower());
+            return matchedAbbreviationFormArg?.Value ?? matchedFullFormArg?.Value ?? false;
         }
     }
 }

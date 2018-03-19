@@ -9,15 +9,15 @@ namespace Arg.Parser.Test
         [InlineData("flag","Flag","flag")]
         [InlineData("flag","Flag","Flag")]
         [InlineData("Flag","Flag","Flag")]
-        public void should_match_and_get_by_long_name(string supportLongName, string inputLongName, string getFlagLongName)
+        public void should_match_and_get_by_full_form(string supportFullForm, string inputFullForm, string getFlagFullForm)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption(supportLongName)
+                .AddFlagOption(supportFullForm)
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "--" + inputLongName });
+            ArgsParsingResult result = parser.Parse(new [] { "--" + inputFullForm });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("--" + getFlagLongName));
+            Assert.True(result.GetFlagValue("--" + getFlagFullForm));
         }
         
         [Theory]
@@ -25,15 +25,15 @@ namespace Arg.Parser.Test
         [InlineData('f','F','f')]
         [InlineData('f','F','F')]
         [InlineData('F','f','f')]
-        public void should_match_and_get_by_short_name(char supportShortName, char inputShortName, char getFlagShortName)
+        public void should_match_and_get_by_abbreviation_form(char supportAbbreviationForm, char inputAbbreviationForm, char getFlagAbbreviationForm)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption(supportShortName)
+                .AddFlagOption(supportAbbreviationForm)
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "-" + inputShortName.ToString() });
+            ArgsParsingResult result = parser.Parse(new [] { "-" + inputAbbreviationForm.ToString() });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("-" + getFlagShortName.ToString()));
+            Assert.True(result.GetFlagValue("-" + getFlagAbbreviationForm.ToString()));
         }
         
         [Theory]
@@ -41,19 +41,19 @@ namespace Arg.Parser.Test
         [InlineData('f',"flag","Flag",'F')]
         [InlineData('F',"flag","flag",'f')]
         [InlineData('f',"Flag","flag",'f')]
-        public void should_build_long_and_short_name_then_match_long_name_then_get_by_short_name(char supportShortName, string supportLongName, string inputLongName, char getFlagShortName)
+        public void should_build_full_and_abbreviation_form_then_match_full_form_then_get_by_abbreviation_form(char supportAbbreviationForm, string supportFullForm, string inputFullForm, char getFlagAbbreviationForm)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption(supportShortName, supportLongName, "it is a flag")
+                .AddFlagOption(supportAbbreviationForm, supportFullForm, "it is a flag")
                 .Build();
             
-            ArgsParsingResult result = parser.Parse(new [] { "--" + inputLongName });
+            ArgsParsingResult result = parser.Parse(new [] { "--" + inputFullForm });
             Assert.True(result.IsSuccess);
-            Assert.True(result.GetFlagValue("-" + getFlagShortName));
+            Assert.True(result.GetFlagValue("-" + getFlagAbbreviationForm));
         }
         
         [Fact]
-        public void not_support_mixed_short_name()
+        public void not_support_mixed_abbreviation_form()
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f')
@@ -65,7 +65,7 @@ namespace Arg.Parser.Test
             Assert.False(parseResult.IsSuccess);
             var error = parseResult.Error;
             Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
-            Assert.Equal("short argument must and only have one lower or upper letter", error.Detail);
+            Assert.Equal("abbreviation form argument must and only have one lower or upper letter", error.Detail);
             Assert.Equal(inputFlag, error.Trigger);
         }
         
@@ -132,7 +132,7 @@ namespace Arg.Parser.Test
         [Theory]
         [InlineData("+")]
         [InlineData("-abc")]
-        public void input_long_name_contain_invalid_character_or_start_with_dash_should_get_error(string input)
+        public void input_full_form_contain_invalid_character_or_start_with_dash_should_get_error(string input)
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
@@ -144,7 +144,7 @@ namespace Arg.Parser.Test
             Assert.False(parseResult.IsSuccess);
             var error = parseResult.Error;
             Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
-            Assert.Equal("long name should only contain lower or upper letter, number, dash and underscore", error.Detail);
+            Assert.Equal("full form should only contain lower or upper letter, number, dash and underscore", error.Detail);
             Assert.Equal(inputFlag, error.Trigger);
         }
         
@@ -152,7 +152,7 @@ namespace Arg.Parser.Test
         [InlineData('+')]
         [InlineData('_')]
         [InlineData('3')]
-        public void short_name_contain_invalid_character_should_throw_exception(char input)
+        public void abbreviation_form_contain_invalid_character_should_throw_exception(char input)
         {
             var parser = new ArgsParserBuilder()
                 .AddFlagOption('f', "flag", "it is a flag")
@@ -164,7 +164,7 @@ namespace Arg.Parser.Test
             Assert.False(parseResult.IsSuccess);
             var error = parseResult.Error;
             Assert.Equal(ParsingErrorCode.FlagSyntaxError, error.Code);
-            Assert.Equal("short argument must and only have one lower or upper letter", error.Detail);
+            Assert.Equal("abbreviation form argument must and only have one lower or upper letter", error.Detail);
             Assert.Equal(inputFlag, error.Trigger);
         }
     }

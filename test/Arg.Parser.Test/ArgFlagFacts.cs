@@ -12,40 +12,40 @@ namespace Arg.Parser.Test
             var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
                 .AddFlagOption(null,null,null)
                 .Build());
-            Assert.Equal("arg opt must have at least one name, long or short", e.Message);
+            Assert.Equal("arg opt must have at least one form, full form or abbreviation form", e.Message);
         }
         
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void throw_exception_when_not_supply_either_short_name_or_long_name(string longName)
+        public void throw_exception_when_not_supply_either_abbreviation_form_or_full_form(string fullForm)
         {
             var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
-                .AddFlagOption(longName)
+                .AddFlagOption(fullForm)
                 .Build());
-            Assert.Equal("arg opt must have at least one name, long or short", e.Message);
+            Assert.Equal("arg opt must have at least one form, full form or abbreviation form", e.Message);
         }
         
         [Theory]
         [InlineData("+")]
         [InlineData("-abc")]
-        public void long_name_contain_invalid_character_or_start_with_dash_should_throw_exception(string longName)
+        public void full_form_contain_invalid_character_or_start_with_dash_should_throw_exception(string fullForm)
         {
             var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
-                .AddFlagOption(longName)
+                .AddFlagOption(fullForm)
                 .Build());
-            Assert.Equal("long name should only contain lower or upper letter," +
-                         $" number, dash and underscore, but get '{longName}'", e.Message);
+            Assert.Equal("full form should only contain lower or upper letter," +
+                         $" number, dash and underscore, but get '{fullForm}'", e.Message);
         }
         
         [Theory]
         [InlineData("a")]
         [InlineData("acAZ7_-")]
         [InlineData("_b")]
-        public void long_name_should_only_contain_number_alpha_dash_underscore_and_without_dash_start(string longName)
+        public void full_form_should_only_contain_number_alpha_dash_underscore_and_without_dash_start(string fullForm)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption(longName)
+                .AddFlagOption(fullForm)
                 .Build();
             Assert.NotNull(parser);
         }
@@ -55,23 +55,23 @@ namespace Arg.Parser.Test
         [InlineData('_')]
         [InlineData('-')]
         [InlineData('3')]
-        public void short_name_contain_invalid_character_should_throw_exception(char shortName)
+        public void abbreviation_form_contain_invalid_character_should_throw_exception(char abbreviationForm)
         {
             var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
-                .AddFlagOption(shortName)
+                .AddFlagOption(abbreviationForm)
                 .Build());
             Assert.Equal(
-                $"short argument must and only have one lower or upper letter, but get: '{shortName}'",
+                $"abbreviation argument must and only have one lower or upper letter, but get: '{abbreviationForm}'",
                 e.Message);
         }
         
         [Theory]
         [InlineData('a')]
         [InlineData('Z')]
-        public void short_name_should_only_contain_alpha(char shortName)
+        public void abbreviation_form_should_only_contain_alpha(char abbreviationForm)
         {
             var parser = new ArgsParserBuilder()
-                .AddFlagOption(shortName)
+                .AddFlagOption(abbreviationForm)
                 .Build();
             Assert.NotNull(parser);
         }
@@ -95,7 +95,7 @@ namespace Arg.Parser.Test
                 .AddFlagOption(fullForm)
                 .AddFlagOption(fullForm.ToUpper())
                 .Build());
-            Assert.Equal("duplicate long name",e.Message);
+            Assert.Equal("duplicate full form",e.Message);
         }
         
         [Fact]
@@ -106,7 +106,7 @@ namespace Arg.Parser.Test
                 .AddFlagOption(abbreviationForm)
                 .AddFlagOption(char.ToUpper(abbreviationForm))
                 .Build());
-            Assert.Equal("duplicate short name",e.Message);
+            Assert.Equal("duplicate abbreviation name",e.Message);
         }
     }
 }
