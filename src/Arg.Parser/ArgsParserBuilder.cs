@@ -11,13 +11,13 @@ namespace Arg.Parser
         private readonly List<FlagOption> argFlags = new List<FlagOption>();
 
         /// <summary>
-        /// add support flag option for parser
+        /// add support flag option for parser, if abbreviationForm and fullForm both empty/null, will throw ArgumentException when Build()
         /// </summary>
-        /// <param name="abbreviationForm">command line short argument, like -f</param>
-        /// <param name="fullForm">command line long argument, like --version</param>
+        /// <param name="abbreviationForm">command line short argument, like -f, if pass null means not set</param>
+        /// <param name="fullForm">command line long argument, like --version, if pass null means not set</param>
         /// <param name="description">command line help info, will show if need</param>
         /// <returns>return self, you can chain call</returns>
-        public ArgsParserBuilder AddFlagOption(char abbreviationForm, string fullForm, string description){
+        public ArgsParserBuilder AddFlagOption(char? abbreviationForm, string fullForm, string description){
             argFlags.Add(new FlagOption(abbreviationForm, fullForm, description));
             return this;
         }

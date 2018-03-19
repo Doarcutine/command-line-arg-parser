@@ -25,7 +25,7 @@ namespace Arg.Parser
         {
             if (argFlags.Any(f => string.IsNullOrEmpty(f.FullForm) && f.AbbreviationForm == null))
             {
-                throw new ApplicationException("arg opt must have at least one name, long or short");
+                throw new ArgumentException("arg opt must have at least one name, long or short");
             }
             var longNameArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).ToList();
             var shortNameArgs = argFlags.Where(f => f.AbbreviationForm.HasValue).ToList();
@@ -33,28 +33,23 @@ namespace Arg.Parser
             if (longNameArgs.Any(f => !LongArg.Requirment(f.FullForm)))
             {
                 var argFlag = longNameArgs.First(f => !LongArg.Requirment(f.FullForm));
-                throw new ApplicationException("long name should only contain lower or upper letter," +
+                throw new ArgumentException("long name should only contain lower or upper letter," +
                                                $" number, dash and underscore, but get '{argFlag.FullForm}'");
             }
             if (shortNameArgs.Any(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value)))
             {
                 var argFlag = shortNameArgs.First(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value));
-                throw new ApplicationException($"short argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
+                throw new ArgumentException($"short argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
             }
 
-            if (argFlags.Count > 1)
+            if (argFlags.Where(f => f.AbbreviationForm.HasValue).GroupBy(f => f.AbbreviationForm.HasValue ? char.ToLower(f.AbbreviationForm.Value) : (char?) null).Any(g => g.Count() > 1))
             {
-                throw new ApplicationException("only support one flag for now");
-            }
-
-            if (argFlags.Where(f => f.AbbreviationForm.HasValue).GroupBy(f => f.AbbreviationForm).Any(g => g.Count() > 1))
-            {
-                throw new ApplicationException("duplicate short name");
+                throw new ArgumentException("duplicate short name");
             }
             
-            if (argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).GroupBy(f => f.FullForm).Any(g => g.Count() > 1))
+            if (argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).GroupBy(f => f.FullForm.ToLower()).Any(g => g.Count() > 1))
             {
-                throw new ApplicationException("duplicate long name");
+                throw new ArgumentException("duplicate long name");
             }
         }
 

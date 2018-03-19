@@ -6,12 +6,21 @@ namespace Arg.Parser.Test
 {
     public class ArgFlagFacts
     {
+        [Fact]
+        public void throw_exception_when_full_form_and_abbreviation_form_both_null()
+        {
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
+                .AddFlagOption(null,null,null)
+                .Build());
+            Assert.Equal("arg opt must have at least one name, long or short", e.Message);
+        }
+        
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         public void throw_exception_when_not_supply_either_short_name_or_long_name(string longName)
         {
-            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
                 .AddFlagOption(longName)
                 .Build());
             Assert.Equal("arg opt must have at least one name, long or short", e.Message);
@@ -22,7 +31,7 @@ namespace Arg.Parser.Test
         [InlineData("-abc")]
         public void long_name_contain_invalid_character_or_start_with_dash_should_throw_exception(string longName)
         {
-            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
                 .AddFlagOption(longName)
                 .Build());
             Assert.Equal("long name should only contain lower or upper letter," +
@@ -48,7 +57,7 @@ namespace Arg.Parser.Test
         [InlineData('3')]
         public void short_name_contain_invalid_character_should_throw_exception(char shortName)
         {
-            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
                 .AddFlagOption(shortName)
                 .Build());
             Assert.Equal(
@@ -77,15 +86,27 @@ namespace Arg.Parser.Test
             Assert.Single(helpInfo);
             Assert.Equal("v    version    this is version info new line", helpInfo.First());
         }
+
+        [Fact]
+        public void should_throw_exception_when_full_form_duplicate()
+        {
+            var fullForm = "abc";
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
+                .AddFlagOption(fullForm)
+                .AddFlagOption(fullForm.ToUpper())
+                .Build());
+            Assert.Equal("duplicate long name",e.Message);
+        }
         
         [Fact]
-        public void should_throw_exception_when_add_more_than_one_flag_option()
+        public void should_throw_exception_when_abbreviation_form_duplicate()
         {
-            var e = Assert.Throws<ApplicationException>(() => new ArgsParserBuilder()
-                .AddFlagOption('v')
-                .AddFlagOption('f')
+            var abbreviationForm = 'a';
+            var e = Assert.Throws<ArgumentException>(() => new ArgsParserBuilder()
+                .AddFlagOption(abbreviationForm)
+                .AddFlagOption(char.ToUpper(abbreviationForm))
                 .Build());
-            Assert.Equal("only support one flag for now", e.Message);
+            Assert.Equal("duplicate short name",e.Message);
         }
     }
 }
