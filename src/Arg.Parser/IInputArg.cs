@@ -22,7 +22,7 @@ namespace Arg.Parser
 
         public bool MatchArg(FlagOption c)
         {
-            return c.ShortName.HasValue && ToLower(c.ShortName.Value) == ToLower(this.Arg);
+            return c.AbbreviationForm.HasValue && ToLower(c.AbbreviationForm.Value) == ToLower(this.Arg);
         }
 
         public bool Value => true;
@@ -50,7 +50,7 @@ namespace Arg.Parser
 
         public bool MatchArg(FlagOption c)
         {
-            return c.LongName?.ToLower() == this.Arg.ToLower();
+            return c.FullForm?.ToLower() == this.Arg.ToLower();
         }
         
         public bool Value => true;

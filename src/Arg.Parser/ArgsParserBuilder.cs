@@ -13,32 +13,32 @@ namespace Arg.Parser
         /// <summary>
         /// add support flag option for parser
         /// </summary>
-        /// <param name="shortName">command line short argument, like -f</param>
-        /// <param name="longName">command line long argument, like --version</param>
+        /// <param name="abbreviationForm">command line short argument, like -f</param>
+        /// <param name="fullForm">command line long argument, like --version</param>
         /// <param name="description">command line help info, will show if need</param>
         /// <returns>return self, you can chain call</returns>
-        public ArgsParserBuilder AddFlagOption(char shortName, string longName, string description){
-            argFlags.Add(new FlagOption(shortName, longName, description));
+        public ArgsParserBuilder AddFlagOption(char abbreviationForm, string fullForm, string description){
+            argFlags.Add(new FlagOption(abbreviationForm, fullForm, description));
             return this;
         }
         
         /// <summary>
         /// add support flag option for parser
         /// </summary>
-        /// <param name="shortName">command line short argument, like -f</param>
+        /// <param name="abbreviationForm">command line short argument, like -f</param>
         /// <returns>return self, you can chain call</returns>
-        public ArgsParserBuilder AddFlagOption(char shortName){
-            argFlags.Add(new FlagOption(shortName));
+        public ArgsParserBuilder AddFlagOption(char abbreviationForm){
+            argFlags.Add(new FlagOption(abbreviationForm));
             return this;
         }
         
         /// <summary>
         /// add support flag option for parser
         /// </summary>
-        /// <param name="longName">command line long argument, like --version</param>
+        /// <param name="fullForm">command line long argument, like --version</param>
         /// <returns>return self, you can chain call</returns>
-        public ArgsParserBuilder AddFlagOption(string longName){
-            argFlags.Add(new FlagOption(longName));
+        public ArgsParserBuilder AddFlagOption(string fullForm){
+            argFlags.Add(new FlagOption(fullForm));
             return this;
         }
 

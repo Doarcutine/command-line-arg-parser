@@ -2,25 +2,25 @@
 {
     class FlagOption
     {
-        internal char? ShortName { get; }
-        internal string LongName { get; }
+        internal char? AbbreviationForm { get; }
+        internal string FullForm { get; }
         internal string Description { get; }
         
-        internal FlagOption(char? shortName, string longName, string description)
+        internal FlagOption(char? abbreviationForm, string fullForm, string description)
         {
-            this.ShortName = shortName;
-            this.LongName = longName;
+            this.AbbreviationForm = abbreviationForm;
+            this.FullForm = fullForm;
             this.Description = description;
         }
 
-        internal FlagOption(char shortName)
+        internal FlagOption(char abbreviationForm)
         {
-            this.ShortName = shortName;
+            this.AbbreviationForm = abbreviationForm;
         }
 
-        internal FlagOption(string longName)
+        internal FlagOption(string fullForm)
         {
-            this.LongName = longName;
+            this.FullForm = fullForm;
         }
     }
 }

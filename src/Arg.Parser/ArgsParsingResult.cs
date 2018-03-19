@@ -50,13 +50,13 @@ namespace Arg.Parser
             switch (queryParseResult.Result)
             {
                 case ShortArg shortArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.ShortName.HasValue && ToLower(s.ShortName.Value) == ToLower(shortArg.Arg));
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(shortArg.Arg));
                     if (supportArg == null) {
                         return false;
                     }
                     break;
                 case LongArg longArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.LongName?.ToLower() == longArg.Arg?.ToLower());
+                    supportArg = supportArgFlags.SingleOrDefault(s => s.FullForm?.ToLower() == longArg.Arg?.ToLower());
                     if (supportArg == null)
                     {
                         return false;
@@ -69,10 +69,10 @@ namespace Arg.Parser
             var matchedShortArg = parsedArgs.SingleOrDefault(r =>
             {
                 if (!(r is ShortArg shortArg)) return false;
-                if (supportArg.ShortName == null) return false;
-                return ToLower(shortArg.Arg) == ToLower(supportArg.ShortName.Value);
+                if (supportArg.AbbreviationForm == null) return false;
+                return ToLower(shortArg.Arg) == ToLower(supportArg.AbbreviationForm.Value);
             });
-            var matchedLongArg = parsedArgs.SingleOrDefault(r => (r as LongArg)?.Arg?.ToLower() == supportArg.LongName?.ToLower());
+            var matchedLongArg = parsedArgs.SingleOrDefault(r => (r as LongArg)?.Arg?.ToLower() == supportArg.FullForm?.ToLower());
             return matchedShortArg?.Value ?? matchedLongArg?.Value ?? false;
         }
     }

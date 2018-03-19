@@ -23,23 +23,23 @@ namespace Arg.Parser
 
         private static void ValidateSupportFlag(IReadOnlyCollection<FlagOption> argFlags)
         {
-            if (argFlags.Any(f => string.IsNullOrEmpty(f.LongName) && f.ShortName == null))
+            if (argFlags.Any(f => string.IsNullOrEmpty(f.FullForm) && f.AbbreviationForm == null))
             {
                 throw new ApplicationException("arg opt must have at least one name, long or short");
             }
-            var longNameArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.LongName)).ToList();
-            var shortNameArgs = argFlags.Where(f => f.ShortName.HasValue).ToList();
+            var longNameArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).ToList();
+            var shortNameArgs = argFlags.Where(f => f.AbbreviationForm.HasValue).ToList();
 
-            if (longNameArgs.Any(f => !LongArg.Requirment(f.LongName)))
+            if (longNameArgs.Any(f => !LongArg.Requirment(f.FullForm)))
             {
-                var argFlag = longNameArgs.First(f => !LongArg.Requirment(f.LongName));
+                var argFlag = longNameArgs.First(f => !LongArg.Requirment(f.FullForm));
                 throw new ApplicationException("long name should only contain lower or upper letter," +
-                                               $" number, dash and underscore, but get '{argFlag.LongName}'");
+                                               $" number, dash and underscore, but get '{argFlag.FullForm}'");
             }
-            if (shortNameArgs.Any(f => f.ShortName.HasValue && !ShortArg.Requirment(f.ShortName.Value)))
+            if (shortNameArgs.Any(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value)))
             {
-                var argFlag = shortNameArgs.First(f => f.ShortName.HasValue && !ShortArg.Requirment(f.ShortName.Value));
-                throw new ApplicationException($"short argument must and only have one lower or upper letter, but get: '{argFlag.ShortName}'");
+                var argFlag = shortNameArgs.First(f => f.AbbreviationForm.HasValue && !ShortArg.Requirment(f.AbbreviationForm.Value));
+                throw new ApplicationException($"short argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
             }
 
             if (argFlags.Count > 1)
@@ -47,12 +47,12 @@ namespace Arg.Parser
                 throw new ApplicationException("only support one flag for now");
             }
 
-            if (argFlags.Where(f => f.ShortName.HasValue).GroupBy(f => f.ShortName).Any(g => g.Count() > 1))
+            if (argFlags.Where(f => f.AbbreviationForm.HasValue).GroupBy(f => f.AbbreviationForm).Any(g => g.Count() > 1))
             {
                 throw new ApplicationException("duplicate short name");
             }
             
-            if (argFlags.Where(f => !string.IsNullOrEmpty(f.LongName)).GroupBy(f => f.LongName).Any(g => g.Count() > 1))
+            if (argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).GroupBy(f => f.FullForm).Any(g => g.Count() > 1))
             {
                 throw new ApplicationException("duplicate long name");
             }
@@ -109,7 +109,7 @@ namespace Arg.Parser
         public IEnumerable<string> HelpInfo()
         {
             return supportArgFlags.Select(af =>
-                $"{af.ShortName?.ToString() ?? ""}    {af.LongName ?? ""}    {af.Description.Replace('\n', ' ')}");
+                $"{af.AbbreviationForm?.ToString() ?? ""}    {af.FullForm ?? ""}    {af.Description.Replace('\n', ' ')}");
         }
     }
 }
