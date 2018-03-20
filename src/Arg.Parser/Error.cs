@@ -34,12 +34,12 @@ namespace Arg.Parser
     public enum ParsingErrorCode
     {
         /// <summary>
-        /// argument syntax error
+        /// input argument is not supported or can't be parse
         /// </summary>
-        FlagSyntaxError,
+        FreeValueNotSupported,
         /// <summary>
-        /// input argument is not supported
+        /// input argument duplicate(ignore case) 
         /// </summary>
-        NotSupportedFlag
+        DuplicateFlagsInArgs
     }
 }

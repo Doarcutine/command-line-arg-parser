@@ -34,6 +34,7 @@ namespace Arg.Parser
         {
             this.IsSuccess = false;
             this.Error = error;
+            this.supportArgFlags = new List<FlagOption>();
         }
 
         /// <summary>
@@ -43,23 +44,30 @@ namespace Arg.Parser
         /// <returns>true if flag appear on input, otherwise false</returns>
         public bool GetFlagValue(string queryArg)
         {
+            if (queryArg == null)
+                throw new ArgumentNullException();
+            if (!IsSuccess)
+                throw new InvalidOperationException();
+            
             var queryParseResult = Parser.Parse(queryArg);
+            
             if (!queryParseResult.ParseSuccess)
-                return false;
+                throw new ArgumentException();
+            
             FlagOption supportArg;
             switch (queryParseResult.Result)
             {
                 case AbbreviationFormArg abbreviationFormArgArg:
                     supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(abbreviationFormArgArg.Arg));
                     if (supportArg == null) {
-                        return false;
+                        throw new ArgumentException();
                     }
                     break;
                 case FullFormArg fullFormArg:
                     supportArg = supportArgFlags.SingleOrDefault(s => s.FullForm?.ToLower() == fullFormArg.Arg?.ToLower());
                     if (supportArg == null)
                     {
-                        return false;
+                        throw new ArgumentException();
                     }
                     break;
                 default:

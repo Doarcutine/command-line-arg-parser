@@ -13,7 +13,7 @@ namespace Arg.Parser
         // ReSharper disable once InconsistentNaming
         private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
         private static readonly Func<string,bool> FullFormPrefix = arg => arg[0] == '-' && arg[1] == '-';
-        private static readonly Func<string,bool> abbreviationFormPrefix = arg => arg[0] == '-';
+        private static readonly Func<string,bool> AbbreviationFormPrefix = arg => arg[0] == '-';
 
         internal Parser(IReadOnlyCollection<FlagOption> supportArgFlags)
         {
@@ -63,20 +63,35 @@ namespace Arg.Parser
         /// </returns>
         public ArgsParsingResult Parse(string[] args)
         {
+            if (args == null)
+                throw new ArgumentNullException();
+            
+            if (args.Any(a => a == null))
+                throw new ArgumentException();
+            
             var parseResults = args.Select(Parse).ToList();
 
             if (parseResults.Any(a => !a.ParseSuccess))
             {
                 var failedParse = parseResults.First(a => !a.ParseSuccess);
                 return new ArgsParsingResult(
-                    new Error(ParsingErrorCode.FlagSyntaxError, failedParse.ParseErrorReason, failedParse.OriginInput));
+                    new Error(ParsingErrorCode.FreeValueNotSupported, failedParse.ParseErrorReason, failedParse.OriginInput));
             }
 
             if (!parseResults.All(p => supportArgFlags.Any(s => p.Result.MatchArg(s))))
             {
                 var notMatchArg = parseResults.First(p => !supportArgFlags.Any(s => p.Result.MatchArg(s)));
-                return new ArgsParsingResult(new Error(ParsingErrorCode.NotSupportedFlag,
+                return new ArgsParsingResult(new Error(ParsingErrorCode.FreeValueNotSupported,
                     "input argument is not supported", notMatchArg.OriginInput));
+            }
+
+            var duplicateFlagInInput = parseResults.Select(p => Tuple.Create(p.OriginInput, supportArgFlags.Single(s => p.Result.MatchArg(s))))
+                .GroupBy(s => s.Item2).Where(g => g.Count() > 1).ToList();
+            if (duplicateFlagInInput.Any())
+            {
+                var trigger = duplicateFlagInInput.First().Select(x => x.Item1).Aggregate((acc, x) => acc + " " + x);
+                return new ArgsParsingResult(new Error(ParsingErrorCode.DuplicateFlagsInArgs,
+                    "duplicate flag option in input arguments", trigger));
             }
 
             return new ArgsParsingResult(parseResults.Select(x => x.Result).ToList(), supportArgFlags);
@@ -90,7 +105,7 @@ namespace Arg.Parser
             {
                 return FullFormArg.Parse(arg);
             }
-            if (abbreviationFormPrefix(arg))
+            if (AbbreviationFormPrefix(arg))
             {
                 return AbbreviationFormArg.Parse(arg);
             }
