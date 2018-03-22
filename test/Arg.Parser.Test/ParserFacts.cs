@@ -76,6 +76,22 @@ namespace Arg.Parser.Test
             Assert.True(result.GetFlagValue("-" + getFlagAbbreviationForm));
         }
 
+        [Theory]
+        [InlineData("--no-edit", "--amend")]
+        [InlineData("--amend", "--no-edit")]
+        public void should_parse_mutiple_args_ignore_order(string input1, string input2)
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption("no-edit")
+                .AddFlagOption("amend")
+                .Build();
+
+            ArgsParsingResult result = parser.Parse(new[] {input1, input2});
+            Assert.True(result.IsSuccess);
+            Assert.True(result.GetFlagValue(input1));
+            Assert.True(result.GetFlagValue(input2));
+        }
+
         [Fact]
         public void not_support_mixed_abbreviation_form()
         {
