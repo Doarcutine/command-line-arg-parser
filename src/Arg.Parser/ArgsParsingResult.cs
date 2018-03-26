@@ -53,9 +53,12 @@ namespace Arg.Parser
             
             if (!queryParseResult.ParseSuccess)
                 throw new ArgumentException();
+
+            if (queryParseResult.Result.Count != 1)
+                throw new ArgumentException();
             
             FlagOption supportArg;
-            switch (queryParseResult.Result)
+            switch (queryParseResult.Result.Single())
             {
                 case AbbreviationFormArg abbreviationFormArgArg:
                     supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(abbreviationFormArgArg.Arg));

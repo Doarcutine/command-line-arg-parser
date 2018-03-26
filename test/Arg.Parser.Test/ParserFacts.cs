@@ -93,24 +93,6 @@ namespace Arg.Parser.Test
         }
 
         [Fact]
-        public void not_support_mixed_abbreviation_form()
-        {
-            var parser = new ArgsParserBuilder()
-                .AddFlagOption('f')
-                .AddFlagOption('r')
-                .Build();
-
-            var inputFlag = "-fr";
-            var parseResult = parser.Parse(new[] {inputFlag});
-
-            Assert.False(parseResult.IsSuccess);
-            var error = parseResult.Error;
-            Assert.Equal(ParsingErrorCode.FreeValueNotSupported, error.Code);
-            Assert.Equal("abbreviation form argument must and only have one lower or upper letter", error.Detail);
-            Assert.Equal(inputFlag, error.Trigger);
-        }
-
-        [Fact]
         public void should_get_false_when_input_argument_not_exist()
         {
             var parser = new ArgsParserBuilder()
@@ -206,7 +188,7 @@ namespace Arg.Parser.Test
             Assert.False(parseResult.IsSuccess);
             var error = parseResult.Error;
             Assert.Equal(ParsingErrorCode.FreeValueNotSupported, error.Code);
-            Assert.Equal("abbreviation form argument must and only have one lower or upper letter", error.Detail);
+            Assert.Equal("abbreviation form argument must only contains lower or upper letter", error.Detail);
             Assert.Equal(inputFlag, error.Trigger);
         }
 
@@ -287,6 +269,73 @@ namespace Arg.Parser.Test
             Assert.True(parseResult.IsSuccess);
 
             Assert.Throws<ArgumentException>(() => parseResult.GetFlagValue(flag));
+        }
+
+        [Fact]
+        public void should_get_free_value_not_supported_when_combine_arg_include_not_support_flag_option()
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption('r', "recursive", string.Empty)
+                .AddFlagOption('f', "force", string.Empty)
+                .Build();
+
+            string[] args = {"-rfa"};
+            ArgsParsingResult result = parser.Parse(args);
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ParsingErrorCode.FreeValueNotSupported,
+                result.Error.Code);
+            Assert.Equal("-rfa", result.Error.Trigger);
+        }
+
+        [Theory]
+        [InlineData("-r")]
+        [InlineData("-f")]
+        [InlineData("-rf")]
+        [InlineData("--force")]
+        [InlineData("--recursive")]
+        public void should_get_duplicate_flags_when_combine_arg_duplicate(string input)
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption('r', "recursive", string.Empty)
+                .AddFlagOption('f', "force", string.Empty)
+                .Build();
+            string[] args = {"-rf", input };
+            ArgsParsingResult result = parser.Parse(args);
+            Assert.False(result.IsSuccess);
+            Assert.Equal(ParsingErrorCode.DuplicateFlagsInArgs,
+                result.Error.Code);
+            Assert.Equal($"-rf {input}", result.Error.Trigger);
+        }
+
+        [Fact]
+        public void should_throw_argument_exception_when_parse_success_but_get_combine_flag()
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption('f', "flag", "it is a flag")
+                .AddFlagOption('r', "recursive", "it is recursive")
+                .Build();
+
+            var parseResult = parser.Parse(new[] {"-fr"});
+
+            Assert.True(parseResult.IsSuccess);
+
+            Assert.Throws<ArgumentException>(() => parseResult.GetFlagValue("-fr"));
+        }
+
+        [Fact]
+        public void should_get_both_value_when_parse_combine_flag_success()
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption('f', "flag", "it is a flag")
+                .AddFlagOption('r', "recursive", "it is recursive")
+                .Build();
+
+            var parseResult = parser.Parse(new[] {"-fr"});
+
+            Assert.True(parseResult.IsSuccess);
+
+            Assert.True(parseResult.GetFlagValue("-f"));
+            Assert.True(parseResult.GetFlagValue("-r"));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using static System.Char;
 
@@ -27,13 +28,13 @@ namespace Arg.Parser
 
         public bool Value => true;
         
-        public static IParseResult<AbbreviationFormArg> Parse(string input)
+        public static IParseResult<IReadOnlyCollection<AbbreviationFormArg>> Parse(string input)
         {
-            var arg = input.Substring(1);
-            if (arg.Length != 1 || !Requirment(arg.First()))
-                return new FailedParse<AbbreviationFormArg>("abbreviation form argument must and only have one " +
-                                                 "lower or upper letter", input);
-            return new SuccessParse<AbbreviationFormArg>(new AbbreviationFormArg(arg.First()), input);
+            var args = input.Substring(1);
+            if (args.Any(arg => !Requirment(arg)))
+                return new FailedParse<IReadOnlyCollection<AbbreviationFormArg>>("abbreviation form argument must only contains lower or upper letter", input);
+            return new SuccessParse<IReadOnlyCollection<AbbreviationFormArg>>(
+                args.Select(a => new AbbreviationFormArg(a)).ToList(), input);
         }
     }
 
@@ -55,13 +56,13 @@ namespace Arg.Parser
         
         public bool Value => true;
 
-        public static IParseResult<FullFormArg> Parse(string input)
+        public static IParseResult<IReadOnlyCollection<FullFormArg>> Parse(string input)
         {
             string arg = input.Substring(2);
             if (!Requirment(arg))
-                return new FailedParse<FullFormArg>("full form should only contain lower or upper letter," +
+                return new FailedParse<IReadOnlyCollection<FullFormArg>>("full form should only contain lower or upper letter," +
                                                 " number, dash and underscore", input);
-            return new SuccessParse<FullFormArg>(new FullFormArg(arg), input);
+            return new SuccessParse<IReadOnlyCollection<FullFormArg>>(new List<FullFormArg>{new FullFormArg(arg)}, input);
         }
     }
 }

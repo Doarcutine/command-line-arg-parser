@@ -77,30 +77,32 @@ namespace Arg.Parser
                 return new ArgsParsingResult(
                     new Error(ParsingErrorCode.FreeValueNotSupported, failedParse.ParseErrorReason, failedParse.OriginInput));
             }
+            
+            var parsedFlags = parseResults.SelectMany(p => p.Result.Select(a => new OriginInputAndParsedArg(a, p.OriginInput))).ToList();
 
-            if (!parseResults.All(p => supportArgFlags.Any(s => p.Result.MatchArg(s))))
+            if (!parsedFlags.All(p => supportArgFlags.Any(s => p.Arg.MatchArg(s))))
             {
-                var notMatchArg = parseResults.First(p => !supportArgFlags.Any(s => p.Result.MatchArg(s)));
+                var notMatchArg = parsedFlags.First(p => !supportArgFlags.Any(s => p.Arg.MatchArg(s)));
                 return new ArgsParsingResult(new Error(ParsingErrorCode.FreeValueNotSupported,
                     "input argument is not supported", notMatchArg.OriginInput));
             }
 
-            var duplicateFlagInInput = parseResults.Select(p => Tuple.Create(p.OriginInput, supportArgFlags.Single(s => p.Result.MatchArg(s))))
-                .GroupBy(s => s.Item2).Where(g => g.Count() > 1).ToList();
+            var duplicateFlagInInput = parsedFlags.Select(p => new OriginInputAndSupportFlag(supportArgFlags.Single(s => p.Arg.MatchArg(s)), p.OriginInput))
+                .GroupBy(s => s.Flag).Where(g => g.Count() > 1).ToList();
             if (duplicateFlagInInput.Any())
             {
-                var trigger = duplicateFlagInInput.First().Select(x => x.Item1).Aggregate((acc, x) => acc + " " + x);
+                var trigger = duplicateFlagInInput.First().Select(x => x.OriginInput).Aggregate((acc, x) => acc + " " + x);
                 return new ArgsParsingResult(new Error(ParsingErrorCode.DuplicateFlagsInArgs,
                     "duplicate flag option in input arguments", trigger));
             }
 
-            return new ArgsParsingResult(parseResults.Select(x => x.Result).ToList(), supportArgFlags);
+            return new ArgsParsingResult(parsedFlags.Select(x => x.Arg).ToList(), supportArgFlags);
         }
 
-        internal static IParseResult<IInputArg> Parse(string arg)
+        internal static IParseResult<IReadOnlyCollection<IInputArg>> Parse(string arg)
         {
             if (arg.Length < 2)
-                return new FailedParse<IInputArg>("argument too short", arg);
+                return new FailedParse<IReadOnlyCollection<IInputArg>>("argument too short", arg);
             if (FullFormPrefix(arg))
             {
                 return FullFormArg.Parse(arg);
@@ -109,7 +111,7 @@ namespace Arg.Parser
             {
                 return AbbreviationFormArg.Parse(arg);
             }
-            return new FailedParse<IInputArg>("argument must start with - or --", arg);
+            return new FailedParse<IReadOnlyCollection<IInputArg>>("argument must start with - or --", arg);
         }
 
         /// <summary>
