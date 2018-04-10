@@ -337,5 +337,23 @@ namespace Arg.Parser.Test
             Assert.True(parseResult.GetFlagValue("-f"));
             Assert.True(parseResult.GetFlagValue("-r"));
         }
+        
+        [Fact]
+        public void should_get_value_when_parse_combine_flag_and_single_flag_mixed_success()
+        {
+            var parser = new ArgsParserBuilder()
+                .AddFlagOption('f', "flag", "it is a flag")
+                .AddFlagOption('r', "recursive", "it is recursive")
+                .AddFlagOption('v')
+                .Build();
+
+            var parseResult = parser.Parse(new[] {"-fr", "-v"});
+
+            Assert.True(parseResult.IsSuccess);
+
+            Assert.True(parseResult.GetFlagValue("-f"));
+            Assert.True(parseResult.GetFlagValue("-r"));
+            Assert.True(parseResult.GetFlagValue("-v"));
+        }
     }
 }

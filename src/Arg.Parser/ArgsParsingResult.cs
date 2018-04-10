@@ -83,7 +83,12 @@ namespace Arg.Parser
                 if (supportArg.AbbreviationForm == null) return false;
                 return ToLower(abbreviationFormArgArg.Arg) == ToLower(supportArg.AbbreviationForm.Value);
             });
-            var matchedFullFormArg = parsedArgs.SingleOrDefault(r => (r as FullFormArg)?.Arg?.ToLower() == supportArg.FullForm?.ToLower());
+            var matchedFullFormArg = parsedArgs.SingleOrDefault(r =>
+            {
+                if (!(r is FullFormArg fullFormArg)) return false;
+                if (supportArg.FullForm == null) return false;
+                return string.Equals(fullFormArg.Arg, supportArg.FullForm, StringComparison.OrdinalIgnoreCase);
+            });
             return matchedAbbreviationFormArg?.Value ?? matchedFullFormArg?.Value ?? false;
         }
     }
