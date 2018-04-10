@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Arg.Parser
@@ -11,14 +12,17 @@ namespace Arg.Parser
     public class Parser
     {
         // ReSharper disable once InconsistentNaming
-        private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
+        private readonly ReadOnlyDictionary<string, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags;
         private static readonly Func<string,bool> FullFormPrefix = arg => arg[0] == '-' && arg[1] == '-';
         private static readonly Func<string,bool> AbbreviationFormPrefix = arg => arg[0] == '-';
 
-        internal Parser(IReadOnlyCollection<FlagOption> supportArgFlags)
+        internal Parser(ReadOnlyDictionary<string, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags)
         {
-            ValidateSupportFlag(supportArgFlags);
-            this.supportArgFlags = supportArgFlags;
+            foreach (var supportArgFlags in commandToSupportArgFlags.Values)
+            {
+                ValidateSupportFlag(supportArgFlags);
+            }
+            this.commandToSupportArgFlags = commandToSupportArgFlags;
         }
 
         private static void ValidateSupportFlag(IReadOnlyCollection<FlagOption> argFlags)
@@ -78,6 +82,9 @@ namespace Arg.Parser
                     new Error(ParsingErrorCode.FreeValueNotSupported, failedParse.ParseErrorReason, failedParse.OriginInput));
             }
             
+            string command = "";
+            var supportArgFlags = commandToSupportArgFlags[command];
+            
             var parsedFlags = parseResults.SelectMany(p => p.Result.Select(a => new OriginInputAndParsedArg(a, p.OriginInput))).ToList();
 
             if (!parsedFlags.All(p => supportArgFlags.Any(s => p.Arg.MatchArg(s))))
@@ -120,7 +127,7 @@ namespace Arg.Parser
         /// <returns>help description</returns>
         public IEnumerable<string> HelpInfo()
         {
-            return supportArgFlags.Select(af =>
+            return commandToSupportArgFlags[""].Select(af =>
                 $"{af.AbbreviationForm?.ToString() ?? ""}    {af.FullForm ?? ""}    {af.Description.Replace('\n', ' ')}");
         }
     }

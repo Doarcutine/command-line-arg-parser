@@ -9,7 +9,9 @@ namespace Arg.Parser.Test
         public void should_throw_exception_when_argument_is_null()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f')
+                .EndCommand()
                 .Build();
 
             Assert.Throws<ArgumentNullException>(() => parser.Parse(null));
@@ -19,7 +21,9 @@ namespace Arg.Parser.Test
         public void should_throw_exception_when_argument_contains_null()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f')
+                .EndCommand()
                 .Build();
 
             Assert.Throws<ArgumentException>(() => parser.Parse(new string[] {null}));
@@ -34,7 +38,9 @@ namespace Arg.Parser.Test
             string getFlagFullForm)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption(supportFullForm)
+                .EndCommand()
                 .Build();
 
             ArgsParsingResult result = parser.Parse(new[] {"--" + inputFullForm});
@@ -51,7 +57,9 @@ namespace Arg.Parser.Test
             char getFlagAbbreviationForm)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption(supportAbbreviationForm)
+                .EndCommand()
                 .Build();
 
             ArgsParsingResult result = parser.Parse(new[] {"-" + inputAbbreviationForm.ToString()});
@@ -68,7 +76,9 @@ namespace Arg.Parser.Test
             char supportAbbreviationForm, string supportFullForm, string inputFullForm, char getFlagAbbreviationForm)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption(supportAbbreviationForm, supportFullForm, "it is a flag")
+                .EndCommand()
                 .Build();
 
             ArgsParsingResult result = parser.Parse(new[] {"--" + inputFullForm});
@@ -82,8 +92,10 @@ namespace Arg.Parser.Test
         public void should_parse_mutiple_args_ignore_order(string input1, string input2)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption("no-edit")
                 .AddFlagOption("amend")
+                .EndCommand()
                 .Build();
 
             ArgsParsingResult result = parser.Parse(new[] {input1, input2});
@@ -96,7 +108,9 @@ namespace Arg.Parser.Test
         public void should_get_false_when_input_argument_not_exist()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             ArgsParsingResult result = parser.Parse(new string[] { });
@@ -108,7 +122,9 @@ namespace Arg.Parser.Test
         public void should_get_error_when_input_arg_not_support_by_flag_option()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-a"});
@@ -124,7 +140,9 @@ namespace Arg.Parser.Test
         public void should_get_error_when_input_arg_too_short()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-"});
@@ -140,7 +158,9 @@ namespace Arg.Parser.Test
         public void should_get_error_when_input_arg_not_start_with_under_score()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"abc"});
@@ -158,7 +178,9 @@ namespace Arg.Parser.Test
         public void input_full_form_contain_invalid_character_or_start_with_dash_should_get_error(string input)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var inputFlag = "--" + input;
@@ -179,7 +201,9 @@ namespace Arg.Parser.Test
         public void abbreviation_form_contain_invalid_character_should_get_error(char input)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var inputFlag = "-" + input;
@@ -199,7 +223,9 @@ namespace Arg.Parser.Test
         public void should_get_duplicate_flag_when_input_argument_duplicate(string flag1, string flag2)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {flag1, flag2});
@@ -215,7 +241,9 @@ namespace Arg.Parser.Test
         public void should_throw_argument_null_exception_when_get_flag_argument_is_null()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-f"});
@@ -231,7 +259,9 @@ namespace Arg.Parser.Test
         public void should_throw_invalid_operation_exception_when_parse_error()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"--a"});
@@ -245,7 +275,9 @@ namespace Arg.Parser.Test
         public void should_throw_argument_exception_when_parse_success_but_get_flag_syntax_error()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-f"});
@@ -261,7 +293,9 @@ namespace Arg.Parser.Test
         public void should_throw_argument_exception_when_parse_success_but_get_not_support_flag(string flag)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-f"});
@@ -275,8 +309,10 @@ namespace Arg.Parser.Test
         public void should_get_free_value_not_supported_when_combine_arg_include_not_support_flag_option()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('r', "recursive", string.Empty)
                 .AddFlagOption('f', "force", string.Empty)
+                .EndCommand()
                 .Build();
 
             string[] args = {"-rfa"};
@@ -296,10 +332,12 @@ namespace Arg.Parser.Test
         public void should_get_duplicate_flags_when_combine_arg_duplicate(string input)
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('r', "recursive", string.Empty)
                 .AddFlagOption('f', "force", string.Empty)
+                .EndCommand()
                 .Build();
-            string[] args = {"-rf", input };
+            string[] args = {"-rf", input};
             ArgsParsingResult result = parser.Parse(args);
             Assert.False(result.IsSuccess);
             Assert.Equal(ParsingErrorCode.DuplicateFlagsInArgs,
@@ -311,8 +349,10 @@ namespace Arg.Parser.Test
         public void should_throw_argument_exception_when_parse_success_but_get_combine_flag()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .AddFlagOption('r', "recursive", "it is recursive")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-fr"});
@@ -326,8 +366,10 @@ namespace Arg.Parser.Test
         public void should_get_both_value_when_parse_combine_flag_success()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .AddFlagOption('r', "recursive", "it is recursive")
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-fr"});
@@ -337,14 +379,16 @@ namespace Arg.Parser.Test
             Assert.True(parseResult.GetFlagValue("-f"));
             Assert.True(parseResult.GetFlagValue("-r"));
         }
-        
+
         [Fact]
         public void should_get_value_when_parse_combine_flag_and_single_flag_mixed_success()
         {
             var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
                 .AddFlagOption('f', "flag", "it is a flag")
                 .AddFlagOption('r', "recursive", "it is recursive")
                 .AddFlagOption('v')
+                .EndCommand()
                 .Build();
 
             var parseResult = parser.Parse(new[] {"-fr", "-v"});
