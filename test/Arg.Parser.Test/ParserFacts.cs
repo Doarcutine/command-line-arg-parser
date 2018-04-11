@@ -391,13 +391,44 @@ namespace Arg.Parser.Test
                 .EndCommand()
                 .Build();
 
-            var parseResult = parser.Parse(new[] {"-fr", "-v"});
+            var parseResult = parser.Parse(new[] {"-fr"});
 
             Assert.True(parseResult.IsSuccess);
 
             Assert.True(parseResult.GetFlagValue("-f"));
             Assert.True(parseResult.GetFlagValue("-r"));
-            Assert.True(parseResult.GetFlagValue("-v"));
+            Assert.False(parseResult.GetFlagValue("-v"));
+        }
+        
+        [Fact]
+        public void command_symbol_should_be_null_when_parse_default_command_success()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .EndCommand()
+                .Build();
+
+            var parseResult = parser.Parse(Array.Empty<string>());
+
+            Assert.True(parseResult.IsSuccess);
+
+            Assert.NotNull(parseResult.Command);
+            Assert.Null(parseResult.Command.Symbol);
+        }
+        
+        [Fact]
+        public void command_should_be_null_when_parse_default_command_failure()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .EndCommand()
+                .Build();
+
+            var parseResult = parser.Parse(new [] {"-f"});
+
+            Assert.False(parseResult.IsSuccess);
+
+            Assert.Null(parseResult.Command);
         }
     }
 }

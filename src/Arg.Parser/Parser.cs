@@ -12,11 +12,12 @@ namespace Arg.Parser
     public class Parser
     {
         // ReSharper disable once InconsistentNaming
-        private readonly ReadOnlyDictionary<string, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags;
+        private readonly ReadOnlyDictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags;
         private static readonly Func<string,bool> FullFormPrefix = arg => arg[0] == '-' && arg[1] == '-';
         private static readonly Func<string,bool> AbbreviationFormPrefix = arg => arg[0] == '-';
+        private readonly ICommandDefinitionMetadata defaultCommand = new CommandDefinitionMetadata(null);
 
-        internal Parser(ReadOnlyDictionary<string, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags)
+        internal Parser(ReadOnlyDictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags)
         {
             foreach (var supportArgFlags in commandToSupportArgFlags.Values)
             {
@@ -81,8 +82,8 @@ namespace Arg.Parser
                 return new ArgsParsingResult(
                     new Error(ParsingErrorCode.FreeValueNotSupported, failedParse.ParseErrorReason, failedParse.OriginInput));
             }
-            
-            string command = "";
+
+            ICommandDefinitionMetadata command = defaultCommand;
             var supportArgFlags = commandToSupportArgFlags[command];
             
             var parsedFlags = parseResults.SelectMany(p => p.Result.Select(a => new OriginInputAndParsedArg(a, p.OriginInput))).ToList();
@@ -103,7 +104,7 @@ namespace Arg.Parser
                     "duplicate flag option in input arguments", trigger));
             }
 
-            return new ArgsParsingResult(parsedFlags.Select(x => x.Arg).ToList(), supportArgFlags);
+            return new ArgsParsingResult(command, parsedFlags.Select(x => x.Arg).ToList(), supportArgFlags);
         }
 
         internal static IParseResult<IReadOnlyCollection<IInputArg>> Parse(string arg)
@@ -127,7 +128,7 @@ namespace Arg.Parser
         /// <returns>help description</returns>
         public IEnumerable<string> HelpInfo()
         {
-            return commandToSupportArgFlags[""].Select(af =>
+            return commandToSupportArgFlags[defaultCommand].Select(af =>
                 $"{af.AbbreviationForm?.ToString() ?? ""}    {af.FullForm ?? ""}    {af.Description.Replace('\n', ' ')}");
         }
     }

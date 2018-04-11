@@ -20,12 +20,18 @@ namespace Arg.Parser
         /// when IsSuccess is true, this field will be null
         /// </summary>
         public Error Error { get;  } 
+        /// <summary>
+        /// input command
+        /// </summary>
+        public ICommandDefinitionMetadata Command { get; }
         private readonly IReadOnlyCollection<IInputArg> parsedArgs;
         private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
 
-        internal ArgsParsingResult(IReadOnlyCollection<IInputArg> parsedArgs, IReadOnlyCollection<FlagOption> supportArgFlags)
+        internal ArgsParsingResult(ICommandDefinitionMetadata command, IReadOnlyCollection<IInputArg> parsedArgs,
+            IReadOnlyCollection<FlagOption> supportArgFlags)
         {
             this.IsSuccess = true;
+            this.Command = command;
             this.parsedArgs = parsedArgs;
             this.supportArgFlags = supportArgFlags;
         }
@@ -34,6 +40,7 @@ namespace Arg.Parser
         {
             this.IsSuccess = false;
             this.Error = error;
+            this.Command = null;
             this.supportArgFlags = new List<FlagOption>();
         }
 

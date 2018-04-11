@@ -9,7 +9,7 @@ namespace Arg.Parser
     /// </summary>
     public class ArgsParserBuilder
     {
-        private Dictionary<string, ReadOnlyCollection<FlagOption>> commandWithArgFlags = new Dictionary<string, ReadOnlyCollection<FlagOption>>();
+        private Dictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandWithArgFlags = new Dictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>>();
         
         /// <summary>
         /// begin default command, format like 'rm -rf' is default command
@@ -17,7 +17,7 @@ namespace Arg.Parser
         /// <returns></returns>
         public CommandBuilder BeginDefaultCommand()
         {
-            return new CommandBuilder("", this);
+            return new CommandBuilder(null, this);
         }
         
         /// <summary>
@@ -25,14 +25,15 @@ namespace Arg.Parser
         /// </summary>
         /// <returns>a parser will parse you defined flag options</returns>
         public Parser Build(){
-            return new Parser(new ReadOnlyDictionary<string,ReadOnlyCollection<FlagOption>>(commandWithArgFlags));
+            return new Parser(new ReadOnlyDictionary<ICommandDefinitionMetadata,ReadOnlyCollection<FlagOption>>(commandWithArgFlags));
         }
 
         internal void AddCommand(string commandName, ReadOnlyCollection<FlagOption> argFlags)
         {
-            if (commandWithArgFlags.ContainsKey(commandName))
+            var command = new CommandDefinitionMetadata(commandName);
+            if (commandWithArgFlags.ContainsKey(command))
                 throw new InvalidOperationException();
-            commandWithArgFlags.Add(commandName, argFlags);
+            commandWithArgFlags.Add(command, argFlags);
         }
     }
 }
