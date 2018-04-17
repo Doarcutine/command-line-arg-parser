@@ -12,47 +12,46 @@ namespace Arg.Parser
     public class Parser
     {
         // ReSharper disable once InconsistentNaming
-        private readonly ReadOnlyDictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags;
+        private readonly ReadOnlyCollection<ICommandDefinitionMetadata> commandDefinitions;
         private static readonly Func<string,bool> FullFormPrefix = arg => arg[0] == '-' && arg[1] == '-';
         private static readonly Func<string,bool> AbbreviationFormPrefix = arg => arg[0] == '-';
-        private readonly ICommandDefinitionMetadata defaultCommand = new CommandDefinitionMetadata(null);
 
-        internal Parser(ReadOnlyDictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandToSupportArgFlags)
+        internal Parser(ReadOnlyCollection<ICommandDefinitionMetadata> commandDefinitions)
         {
-            foreach (var supportArgFlags in commandToSupportArgFlags.Values)
+            foreach (var supportArgFlags in commandDefinitions)
             {
-                ValidateSupportFlag(supportArgFlags);
+                ValidateSupportFlag(new ReadOnlyCollection<IOptionDefinitionMetadata>(supportArgFlags.GetRegisteredOptionsMetadata().ToList()));
             }
-            this.commandToSupportArgFlags = commandToSupportArgFlags;
+            this.commandDefinitions = commandDefinitions;
         }
 
-        private static void ValidateSupportFlag(IReadOnlyCollection<FlagOption> argFlags)
+        private static void ValidateSupportFlag(IReadOnlyCollection<IOptionDefinitionMetadata> argFlags)
         {
-            if (argFlags.Any(f => string.IsNullOrEmpty(f.FullForm) && f.AbbreviationForm == null))
+            if (argFlags.Any(f => string.IsNullOrEmpty(f.SymbolMetadata.FullForm) && f.SymbolMetadata.Abbreviation == null))
             {
                 throw new ArgumentException("arg opt must have at least one form, full form or abbreviation form");
             }
-            var fullFormArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).ToList();
-            var abbreviationFormArgs = argFlags.Where(f => f.AbbreviationForm.HasValue).ToList();
+            var fullFormArgs = argFlags.Where(f => !string.IsNullOrEmpty(f.SymbolMetadata.FullForm)).ToList();
+            var abbreviationFormArgs = argFlags.Where(f => f.SymbolMetadata.Abbreviation.HasValue).ToList();
 
-            if (fullFormArgs.Any(f => !FullFormArg.Requirment(f.FullForm)))
+            if (fullFormArgs.Any(f => !FullFormArg.Requirment(f.SymbolMetadata.FullForm)))
             {
-                var argFlag = fullFormArgs.First(f => !FullFormArg.Requirment(f.FullForm));
+                var argFlag = fullFormArgs.First(f => !FullFormArg.Requirment(f.SymbolMetadata.FullForm));
                 throw new ArgumentException("full form should only contain lower or upper letter," +
-                                               $" number, dash and underscore, but get '{argFlag.FullForm}'");
+                                               $" number, dash and underscore, but get '{argFlag.SymbolMetadata.FullForm}'");
             }
-            if (abbreviationFormArgs.Any(f => f.AbbreviationForm.HasValue && !AbbreviationFormArg.Requirment(f.AbbreviationForm.Value)))
+            if (abbreviationFormArgs.Any(f => f.SymbolMetadata.Abbreviation.HasValue && !AbbreviationFormArg.Requirment(f.SymbolMetadata.Abbreviation.Value)))
             {
-                var argFlag = abbreviationFormArgs.First(f => f.AbbreviationForm.HasValue && !AbbreviationFormArg.Requirment(f.AbbreviationForm.Value));
-                throw new ArgumentException($"abbreviation argument must and only have one lower or upper letter, but get: '{argFlag.AbbreviationForm}'");
+                var argFlag = abbreviationFormArgs.First(f => f.SymbolMetadata.Abbreviation.HasValue && !AbbreviationFormArg.Requirment(f.SymbolMetadata.Abbreviation.Value));
+                throw new ArgumentException($"abbreviation argument must and only have one lower or upper letter, but get: '{argFlag.SymbolMetadata.Abbreviation}'");
             }
 
-            if (argFlags.Where(f => f.AbbreviationForm.HasValue).GroupBy(f => f.AbbreviationForm.HasValue ? char.ToLower(f.AbbreviationForm.Value) : (char?) null).Any(g => g.Count() > 1))
+            if (argFlags.Where(f => f.SymbolMetadata.Abbreviation.HasValue).GroupBy(f => f.SymbolMetadata.Abbreviation.HasValue ? char.ToLower(f.SymbolMetadata.Abbreviation.Value) : (char?) null).Any(g => g.Count() > 1))
             {
                 throw new ArgumentException("duplicate abbreviation name");
             }
             
-            if (argFlags.Where(f => !string.IsNullOrEmpty(f.FullForm)).GroupBy(f => f.FullForm.ToLower()).Any(g => g.Count() > 1))
+            if (argFlags.Where(f => !string.IsNullOrEmpty(f.SymbolMetadata.FullForm)).GroupBy(f => f.SymbolMetadata.FullForm.ToLower()).Any(g => g.Count() > 1))
             {
                 throw new ArgumentException("duplicate full form");
             }
@@ -83,19 +82,19 @@ namespace Arg.Parser
                     new Error(ParsingErrorCode.FreeValueNotSupported, failedParse.ParseErrorReason, failedParse.OriginInput));
             }
 
-            ICommandDefinitionMetadata command = defaultCommand;
-            var supportArgFlags = commandToSupportArgFlags[command];
+            ICommandDefinitionMetadata command = commandDefinitions.Single();
+            var supportArgFlags = command.GetRegisteredOptionsMetadata();
             
             var parsedFlags = parseResults.SelectMany(p => p.Result.Select(a => new OriginInputAndParsedArg(a, p.OriginInput))).ToList();
 
-            if (!parsedFlags.All(p => supportArgFlags.Any(s => p.Arg.MatchArg(s))))
+            if (!parsedFlags.All(p => supportArgFlags.Any(s => p.Arg.MatchArg(s.SymbolMetadata))))
             {
-                var notMatchArg = parsedFlags.First(p => !supportArgFlags.Any(s => p.Arg.MatchArg(s)));
+                var notMatchArg = parsedFlags.First(p => !supportArgFlags.Any(s => p.Arg.MatchArg(s.SymbolMetadata)));
                 return new ArgsParsingResult(new Error(ParsingErrorCode.FreeValueNotSupported,
                     "input argument is not supported", notMatchArg.OriginInput));
             }
 
-            var duplicateFlagInInput = parsedFlags.Select(p => new OriginInputAndSupportFlag(supportArgFlags.Single(s => p.Arg.MatchArg(s)), p.OriginInput))
+            var duplicateFlagInInput = parsedFlags.Select(p => new OriginInputAndSupportFlag(supportArgFlags.Single(s => p.Arg.MatchArg(s.SymbolMetadata)), p.OriginInput))
                 .GroupBy(s => s.Flag).Where(g => g.Count() > 1).ToList();
             if (duplicateFlagInInput.Any())
             {
@@ -104,7 +103,7 @@ namespace Arg.Parser
                     "duplicate flag option in input arguments", trigger));
             }
 
-            return new ArgsParsingResult(command, parsedFlags.Select(x => x.Arg).ToList(), supportArgFlags);
+            return new ArgsParsingResult(command, parsedFlags.Select(x => x.Arg).ToList());
         }
 
         internal static IParseResult<IReadOnlyCollection<IInputArg>> Parse(string arg)
@@ -128,8 +127,8 @@ namespace Arg.Parser
         /// <returns>help description</returns>
         public IEnumerable<string> HelpInfo()
         {
-            return commandToSupportArgFlags[defaultCommand].Select(af =>
-                $"{af.AbbreviationForm?.ToString() ?? ""}    {af.FullForm ?? ""}    {af.Description.Replace('\n', ' ')}");
+            return commandDefinitions.Single().GetRegisteredOptionsMetadata().Select(af =>
+                $"{af.SymbolMetadata.Abbreviation?.ToString() ?? ""}    {af.SymbolMetadata.FullForm ?? ""}    {af.Description.Replace('\n', ' ')}");
         }
     }
 }

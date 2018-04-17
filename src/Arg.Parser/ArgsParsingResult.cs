@@ -25,15 +25,12 @@ namespace Arg.Parser
         /// </summary>
         public ICommandDefinitionMetadata Command { get; }
         private readonly IReadOnlyCollection<IInputArg> parsedArgs;
-        private readonly IReadOnlyCollection<FlagOption> supportArgFlags;
 
-        internal ArgsParsingResult(ICommandDefinitionMetadata command, IReadOnlyCollection<IInputArg> parsedArgs,
-            IReadOnlyCollection<FlagOption> supportArgFlags)
+        internal ArgsParsingResult(ICommandDefinitionMetadata command, IReadOnlyCollection<IInputArg> parsedArgs)
         {
             this.IsSuccess = true;
             this.Command = command;
             this.parsedArgs = parsedArgs;
-            this.supportArgFlags = supportArgFlags;
         }
 
         internal ArgsParsingResult(Error error)
@@ -41,7 +38,6 @@ namespace Arg.Parser
             this.IsSuccess = false;
             this.Error = error;
             this.Command = null;
-            this.supportArgFlags = new List<FlagOption>();
         }
 
         /// <summary>
@@ -64,17 +60,17 @@ namespace Arg.Parser
             if (queryParseResult.Result.Count != 1)
                 throw new ArgumentException();
             
-            FlagOption supportArg;
+            IOptionSymbolMetadata supportArg;
             switch (queryParseResult.Result.Single())
             {
                 case AbbreviationFormArg abbreviationFormArgArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.AbbreviationForm.HasValue && ToLower(s.AbbreviationForm.Value) == ToLower(abbreviationFormArgArg.Arg));
+                    supportArg = Command.GetRegisteredOptionsMetadata().SingleOrDefault(s => s.SymbolMetadata.Abbreviation.HasValue && ToLower(s.SymbolMetadata.Abbreviation.Value) == ToLower(abbreviationFormArgArg.Arg))?.SymbolMetadata;
                     if (supportArg == null) {
                         throw new ArgumentException();
                     }
                     break;
                 case FullFormArg fullFormArg:
-                    supportArg = supportArgFlags.SingleOrDefault(s => s.FullForm?.ToLower() == fullFormArg.Arg?.ToLower());
+                    supportArg = Command.GetRegisteredOptionsMetadata().SingleOrDefault(s => s.SymbolMetadata.FullForm?.ToLower() == fullFormArg.Arg?.ToLower())?.SymbolMetadata;
                     if (supportArg == null)
                     {
                         throw new ArgumentException();
@@ -87,8 +83,8 @@ namespace Arg.Parser
             var matchedAbbreviationFormArg = parsedArgs.SingleOrDefault(r =>
             {
                 if (!(r is AbbreviationFormArg abbreviationFormArgArg)) return false;
-                if (supportArg.AbbreviationForm == null) return false;
-                return ToLower(abbreviationFormArgArg.Arg) == ToLower(supportArg.AbbreviationForm.Value);
+                if (supportArg.Abbreviation == null) return false;
+                return ToLower(abbreviationFormArgArg.Arg) == ToLower(supportArg.Abbreviation.Value);
             });
             var matchedFullFormArg = parsedArgs.SingleOrDefault(r =>
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xunit;
 
 namespace Arg.Parser.Test
@@ -429,6 +430,72 @@ namespace Arg.Parser.Test
             Assert.False(parseResult.IsSuccess);
 
             Assert.Null(parseResult.Command);
+        }
+
+        [Fact]
+        public void should_get_metadata_when_parse_success()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .AddFlagOption('f', "flag", "flag description")
+                .EndCommand()
+                .Build();
+            ArgsParsingResult result = parser.Parse(new [] {"--flag"});
+            Assert.True(result.IsSuccess);
+            IOptionDefinitionMetadata[] optionDefinitionMetadatas =
+                result.Command.GetRegisteredOptionsMetadata().ToArray();
+            IOptionDefinitionMetadata flagMetadata =
+                optionDefinitionMetadatas.Single(
+                    d => d.SymbolMetadata.FullForm.Equals("flag",
+                        StringComparison.OrdinalIgnoreCase));
+            Assert.Equal("flag", flagMetadata.SymbolMetadata.FullForm);
+            Assert.Equal('f', flagMetadata.SymbolMetadata.Abbreviation);
+            Assert.Equal("flag description", flagMetadata.Description);
+        }
+
+        [Fact]
+        public void command_description_should_be_empty_string_when_command_is_default()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .AddFlagOption('f', "flag", "flag description")
+                .EndCommand()
+                .Build();
+            
+            ArgsParsingResult result = parser.Parse(new [] {"--flag"});
+            Assert.True(result.IsSuccess);
+            Assert.Equal(string.Empty, result.Command.Description);
+        }
+        
+        [Fact]
+        public void registered_options_should_be_empty_collection_when_command_no_flag_option()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .EndCommand()
+                .Build();
+            
+            ArgsParsingResult result = parser.Parse(new string[]{});
+            Assert.True(result.IsSuccess);
+            Assert.Empty(result.Command.GetRegisteredOptionsMetadata());
+        }
+        
+        [Fact]
+        public void flag_description_should_be_empty_string_when_not_set_flag_description()
+        {
+            var parser = new ArgsParserBuilder()
+                .BeginDefaultCommand()
+                .AddFlagOption('f', "flag", null)
+                .EndCommand()
+                .Build();
+            
+            ArgsParsingResult result = parser.Parse(new [] {"--flag"});
+            Assert.True(result.IsSuccess);
+            IOptionDefinitionMetadata flagMetadata =
+                result.Command.GetRegisteredOptionsMetadata().Single(
+                    d => d.SymbolMetadata.FullForm.Equals("flag",
+                        StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(string.Empty, flagMetadata.Description);
         }
     }
 }

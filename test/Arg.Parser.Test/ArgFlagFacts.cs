@@ -128,7 +128,7 @@ namespace Arg.Parser.Test
         }
 
         [Fact]
-        public void should_throw_invalid_operation_exception_when_begin_default_command_more_than_once()
+        public void should_throw_invalid_operation_exception_when_add_default_command_more_than_once()
         {
             Assert.Throws<InvalidOperationException>(() => new ArgsParserBuilder()
                 .BeginDefaultCommand()

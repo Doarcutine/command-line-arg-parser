@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Arg.Parser
 {
@@ -9,7 +10,7 @@ namespace Arg.Parser
     /// </summary>
     public class ArgsParserBuilder
     {
-        private Dictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>> commandWithArgFlags = new Dictionary<ICommandDefinitionMetadata, ReadOnlyCollection<FlagOption>>();
+        private List<ICommandDefinitionMetadata> commands = new List<ICommandDefinitionMetadata>();
         
         /// <summary>
         /// begin default command, format like 'rm -rf' is default command
@@ -25,15 +26,15 @@ namespace Arg.Parser
         /// </summary>
         /// <returns>a parser will parse you defined flag options</returns>
         public Parser Build(){
-            return new Parser(new ReadOnlyDictionary<ICommandDefinitionMetadata,ReadOnlyCollection<FlagOption>>(commandWithArgFlags));
+            return new Parser(new ReadOnlyCollection<ICommandDefinitionMetadata>(commands));
         }
 
         internal void AddCommand(string commandName, ReadOnlyCollection<FlagOption> argFlags)
         {
-            var command = new CommandDefinitionMetadata(commandName);
-            if (commandWithArgFlags.ContainsKey(command))
+            var command = new CommandDefinitionMetadata(commandName, argFlags);
+            if (commands.Any(c => c.Symbol == command.Symbol))
                 throw new InvalidOperationException();
-            commandWithArgFlags.Add(command, argFlags);
+            commands.Add(command);
         }
     }
 }

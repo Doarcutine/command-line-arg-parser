@@ -2,10 +2,10 @@
 {
     class OriginInputAndSupportFlag
     {
-        internal FlagOption Flag { get; }
+        internal IOptionDefinitionMetadata Flag { get; }
         internal string OriginInput { get; }
 
-        internal OriginInputAndSupportFlag(FlagOption flag, string originInput)
+        internal OriginInputAndSupportFlag(IOptionDefinitionMetadata flag, string originInput)
         {
             Flag = flag;
             OriginInput = originInput;

@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
 namespace Arg.Parser
 {
     /// <summary>
@@ -9,15 +13,33 @@ namespace Arg.Parser
         /// command symbol
         /// </summary>
         string Symbol { get; }
+        /// <summary>
+        /// command description
+        /// </summary>
+        string Description { get; }
+        /// <summary>
+        /// command support flag options
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IOptionDefinitionMetadata> GetRegisteredOptionsMetadata();
     }
 
     class CommandDefinitionMetadata : ICommandDefinitionMetadata
     {
         public string Symbol { get; }
+        public string Description { get; }
+        private readonly IReadOnlyCollection<IOptionDefinitionMetadata> registeredOptions;
+        
+        public IEnumerable<IOptionDefinitionMetadata> GetRegisteredOptionsMetadata()
+        {
+            return registeredOptions;
+        }
 
-        public CommandDefinitionMetadata(string symbol)
+        public CommandDefinitionMetadata(string symbol, IReadOnlyCollection<IOptionDefinitionMetadata> registeredOptions)
         {
             Symbol = symbol;
+            Description = string.Empty;
+            this.registeredOptions = new ReadOnlyCollection<IOptionDefinitionMetadata>(registeredOptions.ToList());
         }
 
         bool Equals(CommandDefinitionMetadata other)

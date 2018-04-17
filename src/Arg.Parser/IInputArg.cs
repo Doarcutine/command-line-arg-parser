@@ -7,7 +7,7 @@ namespace Arg.Parser
 {
     interface IInputArg
     {
-        bool MatchArg(FlagOption c);
+        bool MatchArg(IOptionSymbolMetadata c);
         bool Value { get; }
     }
 
@@ -21,9 +21,9 @@ namespace Arg.Parser
             this.Arg = arg;
         }
 
-        public bool MatchArg(FlagOption c)
+        public bool MatchArg(IOptionSymbolMetadata c)
         {
-            return c.AbbreviationForm.HasValue && ToLower(c.AbbreviationForm.Value) == ToLower(this.Arg);
+            return c.Abbreviation.HasValue && ToLower(c.Abbreviation.Value) == ToLower(this.Arg);
         }
 
         public bool Value => true;
@@ -49,7 +49,7 @@ namespace Arg.Parser
             this.Arg = arg;
         }
 
-        public bool MatchArg(FlagOption c)
+        public bool MatchArg(IOptionSymbolMetadata c)
         {
             return c.FullForm?.ToLower() == this.Arg.ToLower();
         }
