@@ -4,3 +4,4 @@ dotnet: 2.1.4
 script:
  - dotnet restore
  - dotnet build
+ - dotnet test test/Arg.Parser.Test/Arg.Parser.Test.csproj
